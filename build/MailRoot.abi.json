@@ -1,0 +1,113 @@
+{
+	"ABI version": 2,
+	"version": "2.2",
+	"header": ["pubkey", "time", "expire"],
+	"functions": [
+		{
+			"name": "constructor",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "sendMailAddress",
+			"inputs": [
+				{"name":"receiver","type":"address"},
+				{"name":"encryptedByReceiverMail","type":"bytes"},
+				{"name":"encryptedBySenderMail","type":"bytes"},
+				{"name":"send_gas_to","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "sendMailPubkey",
+			"inputs": [
+				{"name":"pubkey","type":"uint256"},
+				{"name":"encryptedByReceiverMail","type":"bytes"},
+				{"name":"encryptedBySenderMail","type":"bytes"},
+				{"name":"send_gas_to","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onMailSaved",
+			"inputs": [
+				{"name":"nonce","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getMailAccountAddress",
+			"inputs": [
+				{"name":"answerId","type":"uint32"},
+				{"name":"_user","type":"address"},
+				{"name":"_pubkey","type":"uint256"}
+			],
+			"outputs": [
+				{"name":"value0","type":"address"}
+			]
+		},
+		{
+			"name": "getMailAddress",
+			"inputs": [
+				{"name":"answerId","type":"uint32"},
+				{"name":"_nonce","type":"uint128"}
+			],
+			"outputs": [
+				{"name":"value0","type":"address"}
+			]
+		},
+		{
+			"name": "_randomNonce",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"_randomNonce","type":"uint256"}
+			]
+		},
+		{
+			"name": "mailCount",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"mailCount","type":"uint32"}
+			]
+		}
+	],
+	"data": [
+		{"key":1,"name":"_randomNonce","type":"uint256"},
+		{"key":2,"name":"accountCode","type":"cell"},
+		{"key":3,"name":"mailBoxCode","type":"cell"},
+		{"key":4,"name":"mailCode","type":"cell"}
+	],
+	"events": [
+		{
+			"name": "MailPairCreated",
+			"inputs": [
+				{"name":"sender","type":"address"},
+				{"name":"receiver","type":"address"},
+				{"name":"receiver_pubkey","type":"uint256"},
+				{"name":"mailEncryptedReceiver","type":"address"},
+				{"name":"mailEncryptedSender","type":"address"}
+			],
+			"outputs": [
+			]
+		}
+	],
+	"fields": [
+		{"name":"_pubkey","type":"uint256"},
+		{"name":"_timestamp","type":"uint64"},
+		{"name":"_constructorFlag","type":"bool"},
+		{"name":"_randomNonce","type":"uint256"},
+		{"name":"accountCode","type":"cell"},
+		{"name":"mailBoxCode","type":"cell"},
+		{"name":"mailCode","type":"cell"},
+		{"name":"mailCount","type":"uint32"},
+		{"name":"_mail_nonce","type":"uint32"},
+		{"components":[{"name":"user","type":"address"},{"name":"pubkey","type":"uint256"},{"name":"mail","type":"address"},{"name":"send_gas_to","type":"address"}],"name":"_pending_mails","type":"map(uint32,tuple)"}
+	]
+}
