@@ -1,6 +1,6 @@
 import { LockliftConfig } from "locklift";
 import { FactorySource } from "./build/factorySource";
-import { SimpleGiver, GiverWallet } from "./giverSettings";
+import { SimpleGiver, GiverWallet, GiverWalletV2_3 } from "./giverSettings";
 import * as dotenv from "dotenv";
 
 declare global {
@@ -30,7 +30,7 @@ const config: LockliftConfig = {
     // path: "/mnt/o/projects/broxus/TVM-linker/target/release/tvm_linker",
 
     // Or specify version of linker
-    version: "0.15.48",
+    version: "0.15.47",
   },
   networks: {
     local: {
@@ -68,8 +68,8 @@ const config: LockliftConfig = {
       // This giver is default Wallet
       giver: {
         // Check if you need provide custom giver
-        giverFactory: (ever, keyPair, address) => new GiverWallet(ever, keyPair, address),
-        address: "0:ece57bcc6c530283becbbd8a3b24d3c5987cdddc3c8b7b33be6e4a6312490415",
+        giverFactory: (ever, keyPair, address) => new GiverWalletV2_3(ever, keyPair, address),
+        address: "0:4758012a7dfd31bef6203721d11f9d5de07d4150d011090c9ba2fadc28343712",
         phrase: process.env.MAIN_SEED_PHRASE ?? "",
         accountId: 0
       },
