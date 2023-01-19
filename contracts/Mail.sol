@@ -1,9 +1,9 @@
 pragma ever-solidity ^0.62.0;
 
 
-import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
+import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
 import "./libraries/Errors.sol";
-import "locklift/src/console.sol";
+import "locklift/src/console.tsol";
 
 
 contract Mail {

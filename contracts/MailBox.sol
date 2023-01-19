@@ -4,8 +4,8 @@ pragma ever-solidity ^0.62.0;
 import "./interfaces/IMailAccount.sol";
 import "./interfaces/IMailBox.sol";
 import "./libraries/Errors.sol";
-import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
-import "locklift/src/console.sol";
+import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
+import "locklift/src/console.tsol";
 
 
 contract MailBox is IMailBox {

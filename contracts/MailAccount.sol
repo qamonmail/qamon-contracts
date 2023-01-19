@@ -7,7 +7,7 @@ import "./interfaces/IMailBox.sol";
 import "./interfaces/IMailRoot.sol";
 import "./libraries/Gas.sol";
 import "./libraries/Errors.sol";
-import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
+import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
 
 
 contract MailAccount is IMailAccount {

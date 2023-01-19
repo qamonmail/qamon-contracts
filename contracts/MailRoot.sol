@@ -4,9 +4,9 @@ pragma AbiHeader expire;
 pragma AbiHeader pubkey;
 
 
-import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
-import "@broxus/contracts/contracts/utils/RandomNonce.sol";
-import "@broxus/contracts/contracts/access/InternalOwner.sol";
+import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
+import "@broxus/contracts/contracts/utils/RandomNonce.tsol";
+import "@broxus/contracts/contracts/access/InternalOwner.tsol";
 import "./libraries/Errors.sol";
 import "./libraries/Gas.sol";
 import "./interfaces/IMailAccount.sol";
