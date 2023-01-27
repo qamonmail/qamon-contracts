@@ -7,6 +7,6 @@ interface IMailAccount {
         Outbox
     }
 
-    function saveInMailAddress(uint32 nonce, address mail) external;
-    function saveOutMailAddress( uint32 nonce, address mail) external;
+    function saveInMailAddress(address receiver, address sender, uint32 nonce, address mail) external;
+    function saveOutMailAddress(address receiver, address sender, uint32 nonce, address mail) external;
 }

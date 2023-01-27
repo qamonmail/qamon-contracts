@@ -61,18 +61,18 @@ contract MailRoot is IMailRoot, RandomNonce {
         emit MailPairCreated(msg.sender, receiver, pubkey, mail_receiver, mail_sender);
     }
 
-    function _saveOutMail(address mail, address send_gas_to) internal {
+    function _saveOutMail(address receiver, address mail, address send_gas_to) internal {
         address sender_mail_account = getMailAccountAddress(msg.sender, 0);
         _mail_nonce += 1;
         _pending_mails[_mail_nonce] = PendingMail(msg.sender, 0, mail, send_gas_to);
-        IMailAccount(sender_mail_account).saveOutMailAddress{value: Gas.SAVE_MAIL_VALUE}(_mail_nonce, mail);
+        IMailAccount(sender_mail_account).saveOutMailAddress{value: Gas.SAVE_MAIL_VALUE}(receiver, msg.sender, _mail_nonce, mail);
     }
 
     function _saveInMail(address receiver, uint256 pubkey, address mail, address send_gas_to) internal {
         address receiver_mail_account = getMailAccountAddress(receiver, pubkey);
         _mail_nonce += 1;
         _pending_mails[_mail_nonce] = PendingMail(receiver, pubkey, mail, send_gas_to);
-        IMailAccount(receiver_mail_account).saveInMailAddress{value: Gas.SAVE_MAIL_VALUE}(_mail_nonce, mail);
+        IMailAccount(receiver_mail_account).saveInMailAddress{value: Gas.SAVE_MAIL_VALUE}(receiver, msg.sender, _mail_nonce, mail);
     }
 
     function sendMailAddress(address receiver, bytes encryptedByReceiverMail, bytes encryptedBySenderMail, address send_gas_to) external {
@@ -81,7 +81,7 @@ contract MailRoot is IMailRoot, RandomNonce {
 
         (address mail_receiver, address mail_sender) = _deployMailPair(receiver, 0, encryptedByReceiverMail, encryptedBySenderMail);
 
-        _saveOutMail(mail_sender, send_gas_to);
+        _saveOutMail(receiver, mail_sender, send_gas_to);
         _saveInMail(receiver, 0, mail_receiver, send_gas_to);
 
         send_gas_to.transfer({ value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED });
@@ -94,7 +94,7 @@ contract MailRoot is IMailRoot, RandomNonce {
         address zero_receiver = address.makeAddrStd(address(this).wid, 0);
         (address mail_receiver, address mail_sender) = _deployMailPair(zero_receiver, pubkey, encryptedByReceiverMail, encryptedBySenderMail);
 
-        _saveOutMail(mail_sender, send_gas_to);
+        _saveOutMail(zero_receiver, mail_sender, send_gas_to);
         _saveInMail(zero_receiver, pubkey, mail_receiver, send_gas_to);
 
         send_gas_to.transfer({ value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED });
@@ -172,31 +172,31 @@ contract MailRoot is IMailRoot, RandomNonce {
         );
     }
 
-    onBounce(TvmSlice slice) external view {
-        tvm.accept();
+    // onBounce(TvmSlice slice) external view {
+    //     tvm.accept();
 
-        uint32 functionId = slice.decode(uint32);
-        // if processing failed - contract was not deployed. Deploy and try again
-        if (functionId == tvm.functionId(IMailAccount.saveOutMailAddress)) {
-            tvm.rawReserve(_reserve(), 0);
+    //     uint32 functionId = slice.decode(uint32);
+    //     // if processing failed - contract was not deployed. Deploy and try again
+    //     if (functionId == tvm.functionId(IMailAccount.saveOutMailAddress)) {
+    //         tvm.rawReserve(_reserve(), 0);
 
-            uint32 _nonce = slice.decode(uint32);
-            PendingMail _mail = _pending_mails[_nonce];
-            address mail_acc = _deployMailAccount(_mail.user, _mail.pubkey, _mail.send_gas_to);
+    //         uint32 _nonce = slice.decode(uint32);
+    //         PendingMail _mail = _pending_mails[_nonce];
+    //         address mail_acc = _deployMailAccount(_mail.user, _mail.pubkey, _mail.send_gas_to);
 
-            IMailAccount(mail_acc).saveOutMailAddress{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(
-                _nonce, _mail.mail
-            );
-        } else if (functionId == tvm.functionId(IMailAccount.saveInMailAddress)) {
-            tvm.rawReserve(_reserve(), 0);
+    //         IMailAccount(mail_acc).saveOutMailAddress{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(
+    //             _nonce, _mail.mail
+    //         );
+    //     } else if (functionId == tvm.functionId(IMailAccount.saveInMailAddress)) {
+    //         tvm.rawReserve(_reserve(), 0);
 
-            uint32 _nonce = slice.decode(uint32);
-            PendingMail _mail = _pending_mails[_nonce];
-                address mail_acc = _deployMailAccount(_mail.user, _mail.pubkey, _mail.send_gas_to);
+    //         uint32 _nonce = slice.decode(uint32);
+    //         PendingMail _mail = _pending_mails[_nonce];
+    //             address mail_acc = _deployMailAccount(_mail.user, _mail.pubkey, _mail.send_gas_to);
 
-            IMailAccount(mail_acc).saveInMailAddress{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(
-                _nonce, _mail.mail
-            );
-        }
-    }
+    //         IMailAccount(mail_acc).saveInMailAddress{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(
+    //             _nonce, _mail.mail
+    //         );
+    //     }
+    // }
 }

@@ -46,7 +46,7 @@ contract MailAccount is IMailAccount {
         return { value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false }(root, user, pubkey, inMailsNum, outMailsNum);
     }
 
-    function saveInMailAddress(uint32 nonce, address mail) external override onlyRoot {
+    function saveInMailAddress(address receiver, address sender, uint32 nonce, address mail) external override onlyRoot {
         tvm.rawReserve(_reserve(), 0);
 
         address box = getOrCreateMailBox(inMailsNum, MailBoxType.Inbox);
@@ -57,7 +57,7 @@ contract MailAccount is IMailAccount {
         IMailRoot(root).onMailSaved{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(nonce);
     }
 
-    function saveOutMailAddress(uint32 nonce, address mail) external override onlyRoot {
+    function saveOutMailAddress(address receiver, address sender, uint32 nonce, address mail) external override onlyRoot {
         tvm.rawReserve(_reserve(), 0);
 
         address box = getOrCreateMailBox(outMailsNum, MailBoxType.Outbox);

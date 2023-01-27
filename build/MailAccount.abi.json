@@ -27,6 +27,8 @@
 		{
 			"name": "saveInMailAddress",
 			"inputs": [
+				{"name":"receiver","type":"address"},
+				{"name":"sender","type":"address"},
 				{"name":"nonce","type":"uint32"},
 				{"name":"mail","type":"address"}
 			],
@@ -36,6 +38,8 @@
 		{
 			"name": "saveOutMailAddress",
 			"inputs": [
+				{"name":"receiver","type":"address"},
+				{"name":"sender","type":"address"},
 				{"name":"nonce","type":"uint32"},
 				{"name":"mail","type":"address"}
 			],
