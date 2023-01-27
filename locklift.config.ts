@@ -8,7 +8,7 @@ declare global {
 }
 dotenv.config();
 
-const LOCAL_NETWORK_ENDPOINT = "http://localhost:5000/graphql";
+const LOCAL_NETWORK_ENDPOINT = "http://localhost:82/graphql";
 
 const config: LockliftConfig = {
   compiler: {
