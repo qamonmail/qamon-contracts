@@ -94,7 +94,7 @@ contract MailRoot is IMailRoot, RandomNonce {
         address zero_receiver = address.makeAddrStd(address(this).wid, 0);
         (address mail_receiver, address mail_sender) = _deployMailPair(zero_receiver, pubkey, encryptedByReceiverMail, encryptedBySenderMail);
 
-        _saveOutMail(mail_sender, send_gas_to);
+        _saveOutMail(zero_receiver, mail_sender, send_gas_to);
         _saveInMail(zero_receiver, pubkey, mail_receiver, send_gas_to);
 
         send_gas_to.transfer({ value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED });
@@ -185,7 +185,7 @@ contract MailRoot is IMailRoot, RandomNonce {
             address mail_acc = _deployMailAccount(_mail.user, _mail.pubkey, _mail.send_gas_to);
 
             IMailAccount(mail_acc).saveOutMailAddress{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(
-                _nonce, _mail.mail
+                _mail.user, msg.sender, _nonce, _mail.mail
             );
         } else if (functionId == tvm.functionId(IMailAccount.saveInMailAddress)) {
             tvm.rawReserve(_reserve(), 0);
@@ -195,7 +195,7 @@ contract MailRoot is IMailRoot, RandomNonce {
                 address mail_acc = _deployMailAccount(_mail.user, _mail.pubkey, _mail.send_gas_to);
 
             IMailAccount(mail_acc).saveInMailAddress{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(
-                _nonce, _mail.mail
+                _mail.user, msg.sender, _nonce, _mail.mail
             );
         }
     }
