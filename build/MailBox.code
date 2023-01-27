@@ -10,7 +10,7 @@ IFREF {
 GETGLOB 6
 THROWIF 51
 ENDS
-.loc ../contracts/MailBox.sol, 19
+.loc ../contracts/MailBox.sol, 25
 GETGLOB 9
 GETGLOB 10
 SDEQ
@@ -30,7 +30,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/MailBox.sol, 22
+.loc ../contracts/MailBox.sol, 28
 LDU 32
 GETGLOB 4
 ROT
@@ -106,7 +106,7 @@ IFREF {
 THROW 0
 
 .macro getDetails_fbbf93a0_internal_macro
-.loc ../contracts/MailBox.sol, 28
+.loc ../contracts/MailBox.sol, 34
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -130,7 +130,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/MailBox.sol, 31
+.loc ../contracts/MailBox.sol, 37
 LDU 32
 GETGLOB 4
 ROT
@@ -201,7 +201,7 @@ IFREF {
 THROW 0
 
 .macro getMail_dcc53305_internal_macro
-.loc ../contracts/MailBox.sol, 32
+.loc ../contracts/MailBox.sol, 38
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -213,8 +213,24 @@ SETGLOB 4
 GETGLOB 14
 SECOND
 PUSHINT 32
-DICTUGET
+DICTUGETREF
 THROWIFNOT 50
+CTOS
+CALLREF {
+	LDMSGADDR
+	LDREF
+	ENDS
+	CTOS
+	LDMSGADDR
+	LDREF
+	LDREF
+	ENDS
+	CTOS
+	LDMSGADDR
+	ENDS
+	TUPLE 4
+}
+INDEX 3
 .loc ../contracts/MailBox.sol, 0
 
 .macro saveMail
@@ -226,7 +242,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/MailBox.sol, 35
+.loc ../contracts/MailBox.sol, 41
 OVER
 PUSHCONT {
 	LDREF
@@ -235,10 +251,18 @@ PUSHCONT {
 }
 IF
 LDMSGADDR
+LDREF
+ENDS
+CTOS
+LDMSGADDR
+LDREF
+ENDS
+CTOS
+LDMSGADDR
 ENDS
 .loc ../contracts/MailBox.sol, 0
 CALLREF {
-	CALL $saveMail_557406f5_internal_macro$
+	CALL $saveMail_6ceff60f_internal_macro$
 }
 DROP
 CALLREF {
@@ -246,23 +270,46 @@ CALLREF {
 }
 THROW 0
 
-.macro saveMail_557406f5_internal_macro
-.loc ../contracts/MailBox.sol, 36
+.macro saveMail_6ceff60f_internal_macro
+.loc ../contracts/MailBox.sol, 42
 GETGLOB 9
 GETGLOB 10
 SDEQ
 THROWIFNOT 1004
-.loc ../contracts/MailBox.sol, 38
+.loc ../contracts/MailBox.sol, 44
 GETGLOB 14
+SWAP2
+PUSHREF {
+	.blob x
+}
+ROLL 4
+TUPLE 4
+CALLREF {
+	UNTUPLE 4
+	REVERSE 4, 0
+	NEWC
+	STSLICE
+	ROLLREV 3
+	NEWC
+	STSLICE
+	STREF
+	SWAP
+	NEWC
+	STSLICE
+	STBREFR
+	STBREFR
+}
+ENDC
+SWAP
 UNPAIR
 OVER
 INC
 ROLLREV 3
 PUSHINT 32
-DICTUSET
+DICTUSETREF
 PAIR
 SETGLOB 14
-.loc ../contracts/MailBox.sol, 39
+.loc ../contracts/MailBox.sol, 51
 GETGLOB 13
 INC
 UFITS 128
@@ -495,7 +542,7 @@ CALLREF {
 GETGLOB 14
 OVER
 PUSHCONT {
-	PUSHSLICE xc0000000000000000000000000e275d347
+	PUSHSLICE xc0000000000000000000000000d54f27a8
 	NEWC
 	STSLICE
 	SWAP
@@ -522,16 +569,16 @@ IFJMPREF {
 		CALL $getDetails$
 	}
 	DUP
-	PUSHINT 1651888967
-	EQUAL
-	IFJMPREF {
-		CALL $mails$
-	}
-	DUP
-	PUSHINT 1684738242
+	PUSHINT 610671453
 	EQUAL
 	IFJMPREF {
 		CALL $saveMail$
+	}
+	DUP
+	PUSHINT 1431250856
+	EQUAL
+	IFJMPREF {
+		CALL $mails$
 	}
 	DUP
 	PUSHINT 1756716863
