@@ -7,10 +7,7 @@
 			"name": "constructor",
 			"inputs": [
 				{"name":"_body","type":"bytes"},
-				{"name":"_sender","type":"address"},
-				{"name":"_receiver","type":"address"},
-				{"name":"_receiver_pubkey","type":"uint256"},
-				{"name":"_mirror_mail","type":"address"}
+				{"name":"_sender","type":"address"}
 			],
 			"outputs": [
 			]
@@ -24,9 +21,6 @@
 				{"name":"_root","type":"address"},
 				{"name":"_nonce","type":"uint128"},
 				{"name":"_sender","type":"address"},
-				{"name":"_receiver","type":"address"},
-				{"name":"_receiver_pubkey","type":"uint256"},
-				{"name":"_mirror_mail","type":"address"},
 				{"name":"_body","type":"bytes"}
 			]
 		}
@@ -44,9 +38,6 @@
 		{"name":"root","type":"address"},
 		{"name":"nonce","type":"uint128"},
 		{"name":"sender","type":"address"},
-		{"name":"receiver","type":"address"},
-		{"name":"receiver_pubkey","type":"uint256"},
-		{"name":"mirror_mail","type":"address"},
 		{"name":"body","type":"bytes"}
 	]
 }

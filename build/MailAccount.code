@@ -184,10 +184,12 @@ PUSHCONT {
 }
 IFELSE
 LDMSGADDR
+LDREF
+LDU 16
 ENDS
 .loc ../contracts/MailAccount.tsol, 0
 CALLREF {
-	CALL $saveInMailAddress_28beddc9_internal_macro$
+	CALL $saveInMailAddress_a6d1c138_internal_macro$
 }
 DROP
 CALLREF {
@@ -195,7 +197,7 @@ CALLREF {
 }
 THROW 0
 
-.macro saveInMailAddress_28beddc9_internal_macro
+.macro saveInMailAddress_a6d1c138_internal_macro
 .loc ../contracts/MailAccount.tsol, 35
 GETGLOB 9
 GETGLOB 10
@@ -219,7 +221,7 @@ INC
 UFITS 128
 SETGLOB 14
 .loc ../contracts/MailAccount.tsol, 55
-OVER
+PUSH S3
 PUSHSLICE xc00000000000000000000000000806b9bc
 NEWC
 STSLICE
@@ -228,15 +230,18 @@ ENDC
 PUSHINT 0
 SENDRAWMSG
 .loc ../contracts/MailAccount.tsol, 56
+XCHG S1, S3
 NEWC
 STSLICECONST x62_
 STSLICE
 PUSHINT 9789369574394656757036770681243717074945
 STUR 135
-SWAP
+ROLLREV 3
 NEWC
-STSLICECONST x646b10c2
+STSLICECONST x24723040
 STSLICE
+STREF
+STU 16
 STBREFR
 ENDC
 PUSHINT 0
@@ -276,10 +281,12 @@ PUSHCONT {
 }
 IFELSE
 LDMSGADDR
+LDREF
+LDU 16
 ENDS
 .loc ../contracts/MailAccount.tsol, 0
 CALLREF {
-	CALL $saveOutMailAddress_0d6b0949_internal_macro$
+	CALL $saveOutMailAddress_83707ac0_internal_macro$
 }
 DROP
 CALLREF {
@@ -287,7 +294,7 @@ CALLREF {
 }
 THROW 0
 
-.macro saveOutMailAddress_0d6b0949_internal_macro
+.macro saveOutMailAddress_83707ac0_internal_macro
 .loc ../contracts/MailAccount.tsol, 35
 GETGLOB 9
 GETGLOB 10
@@ -311,7 +318,7 @@ INC
 UFITS 128
 SETGLOB 15
 .loc ../contracts/MailAccount.tsol, 66
-OVER
+PUSH S3
 PUSHSLICE xc000000000000000000000000063f42ae2
 NEWC
 STSLICE
@@ -320,15 +327,18 @@ ENDC
 PUSHINT 0
 SENDRAWMSG
 .loc ../contracts/MailAccount.tsol, 67
+XCHG S1, S3
 NEWC
 STSLICECONST x62_
 STSLICE
 PUSHINT 9789369574394656757036770681243717074945
 STUR 135
-SWAP
+ROLLREV 3
 NEWC
-STSLICECONST x646b10c2
+STSLICECONST x24723040
 STSLICE
+STREF
+STU 16
 STBREFR
 ENDC
 PUSHINT 0
@@ -945,16 +955,16 @@ IFJMPREF {
 		CALL $calculateMailBoxAddress$
 	}
 	DUP
+	PUSHINT 748844896
+	EQUAL
+	IFJMPREF {
+		CALL $saveOutMailAddress$
+	}
+	DUP
 	PUSHINT 891820276
 	EQUAL
 	IFJMPREF {
 		CALL $getMailBoxAddress$
-	}
-	DUP
-	PUSHINT 906218795
-	EQUAL
-	IFJMPREF {
-		CALL $saveOutMailAddress$
 	}
 	DUP
 	PUSHINT 1196840156
@@ -968,16 +978,16 @@ PUSHINT 1981807558
 LEQ
 IFJMPREF {
 	DUP
-	PUSHINT 1278689263
-	EQUAL
-	IFJMPREF {
-		CALL $saveInMailAddress$
-	}
-	DUP
 	PUSHINT 1309451937
 	EQUAL
 	IFJMPREF {
 		CALL $mailBoxCode$
+	}
+	DUP
+	PUSHINT 1666924811
+	EQUAL
+	IFJMPREF {
+		CALL $saveInMailAddress$
 	}
 	DUP
 	PUSHINT 1981807558

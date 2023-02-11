@@ -28,7 +28,9 @@
 			"name": "saveInMailAddress",
 			"inputs": [
 				{"name":"nonce","type":"uint32"},
-				{"name":"mail","type":"address"}
+				{"name":"mail","type":"address"},
+				{"name":"meta","type":"bytes"},
+				{"name":"metaVersion","type":"uint16"}
 			],
 			"outputs": [
 			]
@@ -37,7 +39,9 @@
 			"name": "saveOutMailAddress",
 			"inputs": [
 				{"name":"nonce","type":"uint32"},
-				{"name":"mail","type":"address"}
+				{"name":"mail","type":"address"},
+				{"name":"meta","type":"bytes"},
+				{"name":"metaVersion","type":"uint16"}
 			],
 			"outputs": [
 			]
