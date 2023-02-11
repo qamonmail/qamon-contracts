@@ -35,7 +35,7 @@
 			"name": "getMailAccountAddress",
 			"inputs": [
 				{"name":"answerId","type":"uint32"},
-				{"components":[{"name":"addr","type":"address"},{"name":"pubkey","type":"uint256"}],"name":"receiver","type":"tuple"}
+				{"components":[{"name":"addr","type":"address"},{"name":"pubkey","type":"uint256"}],"name":"user","type":"tuple"}
 			],
 			"outputs": [
 				{"name":"value0","type":"address"}

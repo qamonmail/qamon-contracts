@@ -111,9 +111,9 @@ contract MailRoot is IMailRoot, RandomNonce {
         _mail.send_gas_to.transfer({ value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED });
     }
 
-    function getMailAccountAddress(MailUser receiver) public view responsible returns (address) {
+    function getMailAccountAddress(MailUser user) public view responsible returns (address) {
         return { value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false } address(
-            tvm.hash(_buildAccountInitData(receiver))
+            tvm.hash(_buildAccountInitData(user))
         );
     }
 
