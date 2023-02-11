@@ -7,12 +7,12 @@ pragma AbiHeader pubkey;
 import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
 import "@broxus/contracts/contracts/utils/RandomNonce.tsol";
 import "@broxus/contracts/contracts/access/InternalOwner.tsol";
-import "./libraries/Errors.sol";
-import "./libraries/Gas.sol";
-import "./interfaces/IMailAccount.sol";
-import "./interfaces/IMailRoot.sol";
-import "./MailAccount.sol";
-import "./Mail.sol";
+import "./libraries/Errors.tsol";
+import "./libraries/Gas.tsol";
+import "./interfaces/IMailAccount.tsol";
+import "./interfaces/IMailRoot.tsol";
+import "./MailAccount.tsol";
+import "./Mail.tsol";
 
 
 contract MailRoot is IMailRoot, RandomNonce {

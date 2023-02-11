@@ -31,26 +31,26 @@ ENDS
 CTOS
 LDMSGADDR
 ENDS
-.loc ../contracts/Mail.sol, 22
+.loc ../contracts/Mail.tsol, 22
 GETGLOB 9
 GETGLOB 10
 SDEQ
 THROWIFNOT 1004
-.loc ../contracts/Mail.sol, 24
+.loc ../contracts/Mail.tsol, 24
 ROLL 4
 SETGLOB 16
-.loc ../contracts/Mail.sol, 25
+.loc ../contracts/Mail.tsol, 25
 ROLL 3
 SETGLOB 12
-.loc ../contracts/Mail.sol, 26
+.loc ../contracts/Mail.tsol, 26
 ROT
 SETGLOB 13
-.loc ../contracts/Mail.sol, 27
+.loc ../contracts/Mail.tsol, 27
 SWAP
 SETGLOB 14
-.loc ../contracts/Mail.sol, 28
+.loc ../contracts/Mail.tsol, 28
 SETGLOB 15
-.loc ../contracts/Mail.sol, 0
+.loc ../contracts/Mail.tsol, 0
 CALLREF {
 	CALL $c7_to_c4$
 }
@@ -65,14 +65,14 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/Mail.sol, 31
+.loc ../contracts/Mail.tsol, 31
 LDU 32
 GETGLOB 4
 ROT
 SETINDEXQ 5
 SETGLOB 4
 ENDS
-.loc ../contracts/Mail.sol, 0
+.loc ../contracts/Mail.tsol, 0
 CALLREF {
 	CALL $getDetails_fbbf93a0_internal_macro$
 }
@@ -165,7 +165,7 @@ IFREF {
 THROW 0
 
 .macro getDetails_fbbf93a0_internal_macro
-.loc ../contracts/Mail.sol, 40
+.loc ../contracts/Mail.tsol, 40
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -181,7 +181,7 @@ GETGLOB 13
 GETGLOB 14
 GETGLOB 15
 GETGLOB 16
-.loc ../contracts/Mail.sol, 0
+.loc ../contracts/Mail.tsol, 0
 
 .macro c4_to_c7
 PUSHROOT

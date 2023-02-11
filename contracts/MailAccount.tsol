@@ -1,12 +1,12 @@
 pragma ever-solidity ^0.62.0;
 
 
-import "./MailBox.sol";
-import "./interfaces/IMailAccount.sol";
-import "./interfaces/IMailBox.sol";
-import "./interfaces/IMailRoot.sol";
-import "./libraries/Gas.sol";
-import "./libraries/Errors.sol";
+import "./MailBox.tsol";
+import "./interfaces/IMailAccount.tsol";
+import "./interfaces/IMailBox.tsol";
+import "./interfaces/IMailRoot.tsol";
+import "./libraries/Gas.tsol";
+import "./libraries/Errors.tsol";
 import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
 
 

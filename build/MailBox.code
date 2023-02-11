@@ -10,12 +10,12 @@ IFREF {
 GETGLOB 6
 THROWIF 51
 ENDS
-.loc ../contracts/MailBox.sol, 19
+.loc ../contracts/MailBox.tsol, 19
 GETGLOB 9
 GETGLOB 10
 SDEQ
 THROWIFNOT 1004
-.loc ../contracts/MailBox.sol, 0
+.loc ../contracts/MailBox.tsol, 0
 CALLREF {
 	CALL $c7_to_c4$
 }
@@ -30,14 +30,14 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/MailBox.sol, 22
+.loc ../contracts/MailBox.tsol, 22
 LDU 32
 GETGLOB 4
 ROT
 SETINDEXQ 5
 SETGLOB 4
 ENDS
-.loc ../contracts/MailBox.sol, 0
+.loc ../contracts/MailBox.tsol, 0
 CALLREF {
 	CALL $getDetails_fbbf93a0_internal_macro$
 }
@@ -106,7 +106,7 @@ IFREF {
 THROW 0
 
 .macro getDetails_fbbf93a0_internal_macro
-.loc ../contracts/MailBox.sol, 28
+.loc ../contracts/MailBox.tsol, 28
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -119,7 +119,7 @@ GETGLOB 10
 GETGLOB 11
 GETGLOB 12
 GETGLOB 13
-.loc ../contracts/MailBox.sol, 0
+.loc ../contracts/MailBox.tsol, 0
 
 .macro getMail
 DROP
@@ -130,7 +130,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/MailBox.sol, 31
+.loc ../contracts/MailBox.tsol, 31
 LDU 32
 GETGLOB 4
 ROT
@@ -138,7 +138,7 @@ SETINDEXQ 5
 SETGLOB 4
 LDU 256
 ENDS
-.loc ../contracts/MailBox.sol, 0
+.loc ../contracts/MailBox.tsol, 0
 CALLREF {
 	CALL $getMail_dcc53305_internal_macro$
 }
@@ -201,7 +201,7 @@ IFREF {
 THROW 0
 
 .macro getMail_dcc53305_internal_macro
-.loc ../contracts/MailBox.sol, 32
+.loc ../contracts/MailBox.tsol, 32
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -215,7 +215,7 @@ SECOND
 PUSHINT 32
 DICTUGET
 THROWIFNOT 50
-.loc ../contracts/MailBox.sol, 0
+.loc ../contracts/MailBox.tsol, 0
 
 .macro saveMail
 DROP
@@ -226,7 +226,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/MailBox.sol, 35
+.loc ../contracts/MailBox.tsol, 35
 OVER
 PUSHCONT {
 	LDREF
@@ -236,7 +236,7 @@ PUSHCONT {
 IF
 LDMSGADDR
 ENDS
-.loc ../contracts/MailBox.sol, 0
+.loc ../contracts/MailBox.tsol, 0
 CALLREF {
 	CALL $saveMail_557406f5_internal_macro$
 }
@@ -247,12 +247,12 @@ CALLREF {
 THROW 0
 
 .macro saveMail_557406f5_internal_macro
-.loc ../contracts/MailBox.sol, 36
+.loc ../contracts/MailBox.tsol, 36
 GETGLOB 9
 GETGLOB 10
 SDEQ
 THROWIFNOT 1004
-.loc ../contracts/MailBox.sol, 38
+.loc ../contracts/MailBox.tsol, 38
 GETGLOB 14
 UNPAIR
 OVER
@@ -262,12 +262,12 @@ PUSHINT 32
 DICTUSET
 PAIR
 SETGLOB 14
-.loc ../contracts/MailBox.sol, 39
+.loc ../contracts/MailBox.tsol, 39
 GETGLOB 13
 INC
 UFITS 128
 SETGLOB 13
-.loc ../contracts/MailBox.sol, 0
+.loc ../contracts/MailBox.tsol, 0
 
 .macro c4_to_c7
 PUSHROOT
