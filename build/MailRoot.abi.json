@@ -11,22 +11,13 @@
 			]
 		},
 		{
-			"name": "sendMailAddress",
+			"name": "sendMails",
 			"inputs": [
-				{"name":"receiver","type":"address"},
-				{"name":"encryptedByReceiverMail","type":"bytes"},
-				{"name":"encryptedBySenderMail","type":"bytes"},
-				{"name":"send_gas_to","type":"address"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "sendMailPubkey",
-			"inputs": [
-				{"name":"pubkey","type":"uint256"},
-				{"name":"encryptedByReceiverMail","type":"bytes"},
-				{"name":"encryptedBySenderMail","type":"bytes"},
+				{"components":[{"name":"addr","type":"address"},{"name":"pubkey","type":"uint256"}],"name":"receivers","type":"tuple[]"},
+				{"name":"encryptedMail","type":"bytes"},
+				{"name":"senderMeta","type":"bytes"},
+				{"name":"receiverMeta","type":"bytes[]"},
+				{"name":"metaVersion","type":"uint16"},
 				{"name":"send_gas_to","type":"address"}
 			],
 			"outputs": [
@@ -44,8 +35,7 @@
 			"name": "getMailAccountAddress",
 			"inputs": [
 				{"name":"answerId","type":"uint32"},
-				{"name":"_user","type":"address"},
-				{"name":"_pubkey","type":"uint256"}
+				{"components":[{"name":"addr","type":"address"},{"name":"pubkey","type":"uint256"}],"name":"user","type":"tuple"}
 			],
 			"outputs": [
 				{"name":"value0","type":"address"}
@@ -86,13 +76,10 @@
 	],
 	"events": [
 		{
-			"name": "MailPairCreated",
+			"name": "MailCreated",
 			"inputs": [
 				{"name":"sender","type":"address"},
-				{"name":"receiver","type":"address"},
-				{"name":"receiver_pubkey","type":"uint256"},
-				{"name":"mailEncryptedReceiver","type":"address"},
-				{"name":"mailEncryptedSender","type":"address"}
+				{"name":"mail","type":"address"}
 			],
 			"outputs": [
 			]
@@ -108,6 +95,6 @@
 		{"name":"mailCode","type":"cell"},
 		{"name":"mailCount","type":"uint32"},
 		{"name":"_mail_nonce","type":"uint32"},
-		{"components":[{"name":"user","type":"address"},{"name":"pubkey","type":"uint256"},{"name":"mail","type":"address"},{"name":"send_gas_to","type":"address"}],"name":"_pending_mails","type":"map(uint32,tuple)"}
+		{"components":[{"components":[{"name":"addr","type":"address"},{"name":"pubkey","type":"uint256"}],"name":"user","type":"tuple"},{"name":"mail","type":"address"},{"name":"meta","type":"bytes"},{"name":"metaVersion","type":"uint16"},{"name":"send_gas_to","type":"address"}],"name":"_pending_mails","type":"map(uint32,tuple)"}
 	]
 }

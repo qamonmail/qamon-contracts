@@ -18,13 +18,13 @@ PUSHCONT {
 IF
 LDMSGADDR
 ENDS
-.loc ../contracts/MailAccount.sol, 35
+.loc ../contracts/MailAccount.tsol, 35
 DROP
 GETGLOB 9
 GETGLOB 10
 SDEQ
 THROWIFNOT 1004
-.loc ../contracts/MailAccount.sol, 0
+.loc ../contracts/MailAccount.tsol, 0
 CALLREF {
 	CALL $c7_to_c4$
 }
@@ -35,7 +35,7 @@ THROW 0
 CALL $_reserve_413ab4a8_internal_macro$
 
 .macro _reserve_413ab4a8_internal_macro
-.loc ../contracts/MailAccount.sol, 31
+.loc ../contracts/MailAccount.tsol, 31
 GETPARAM 7
 FIRST
 DEPTH
@@ -45,7 +45,7 @@ SUB
 UFITS 128
 PUSHINT 100000000
 MAX
-.loc ../contracts/MailAccount.sol, 0
+.loc ../contracts/MailAccount.tsol, 0
 
 .macro getDetails
 DROP
@@ -56,14 +56,14 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/MailAccount.sol, 39
+.loc ../contracts/MailAccount.tsol, 39
 LDU 32
 GETGLOB 4
 ROT
 SETINDEXQ 5
 SETGLOB 4
 ENDS
-.loc ../contracts/MailAccount.sol, 0
+.loc ../contracts/MailAccount.tsol, 0
 CALLREF {
 	CALL $getDetails_fbbf93a0_internal_macro$
 }
@@ -146,7 +146,7 @@ IFREF {
 THROW 0
 
 .macro getDetails_fbbf93a0_internal_macro
-.loc ../contracts/MailAccount.sol, 46
+.loc ../contracts/MailAccount.tsol, 46
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -160,7 +160,7 @@ GETGLOB 11
 GETGLOB 12
 GETGLOB 14
 GETGLOB 15
-.loc ../contracts/MailAccount.sol, 0
+.loc ../contracts/MailAccount.tsol, 0
 
 .macro saveInMailAddress
 DROP
@@ -171,7 +171,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/MailAccount.sol, 49
+.loc ../contracts/MailAccount.tsol, 49
 OVER
 PUSHCONT {
 	LDU 32
@@ -184,10 +184,12 @@ PUSHCONT {
 }
 IFELSE
 LDMSGADDR
+LDREF
+LDU 16
 ENDS
-.loc ../contracts/MailAccount.sol, 0
+.loc ../contracts/MailAccount.tsol, 0
 CALLREF {
-	CALL $saveInMailAddress_28beddc9_internal_macro$
+	CALL $saveInMailAddress_a6d1c138_internal_macro$
 }
 DROP
 CALLREF {
@@ -195,31 +197,31 @@ CALLREF {
 }
 THROW 0
 
-.macro saveInMailAddress_28beddc9_internal_macro
-.loc ../contracts/MailAccount.sol, 35
+.macro saveInMailAddress_a6d1c138_internal_macro
+.loc ../contracts/MailAccount.tsol, 35
 GETGLOB 9
 GETGLOB 10
 SDEQ
 THROWIFNOT 1004
-.loc ../contracts/MailAccount.sol, 50
+.loc ../contracts/MailAccount.tsol, 50
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/MailAccount.sol, 52
+.loc ../contracts/MailAccount.tsol, 52
 GETGLOB 14
 PUSHINT 0
 CALLREF {
 	CALL $getOrCreateMailBox_471096eb_internal_macro$
 }
-.loc ../contracts/MailAccount.sol, 53
+.loc ../contracts/MailAccount.tsol, 53
 GETGLOB 14
 INC
 UFITS 128
 SETGLOB 14
-.loc ../contracts/MailAccount.sol, 55
-OVER
+.loc ../contracts/MailAccount.tsol, 55
+PUSH S3
 PUSHSLICE xc00000000000000000000000000806b9bc
 NEWC
 STSLICE
@@ -227,21 +229,24 @@ STSLICE
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/MailAccount.sol, 56
+.loc ../contracts/MailAccount.tsol, 56
+XCHG S1, S3
 NEWC
 STSLICECONST x62_
 STSLICE
 PUSHINT 9789369574394656757036770681243717074945
 STUR 135
-SWAP
+ROLLREV 3
 NEWC
-STSLICECONST x646b10c2
+STSLICECONST x24723040
 STSLICE
+STREF
+STU 16
 STBREFR
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/MailAccount.sol, 57
+.loc ../contracts/MailAccount.tsol, 57
 GETGLOB 10
 NEWC
 STSLICECONST x62_
@@ -252,7 +257,7 @@ STU 32
 ENDC
 PUSHPOW2 7
 SENDRAWMSG
-.loc ../contracts/MailAccount.sol, 0
+.loc ../contracts/MailAccount.tsol, 0
 
 .macro saveOutMailAddress
 DROP
@@ -263,7 +268,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/MailAccount.sol, 60
+.loc ../contracts/MailAccount.tsol, 60
 OVER
 PUSHCONT {
 	LDU 32
@@ -276,10 +281,12 @@ PUSHCONT {
 }
 IFELSE
 LDMSGADDR
+LDREF
+LDU 16
 ENDS
-.loc ../contracts/MailAccount.sol, 0
+.loc ../contracts/MailAccount.tsol, 0
 CALLREF {
-	CALL $saveOutMailAddress_0d6b0949_internal_macro$
+	CALL $saveOutMailAddress_83707ac0_internal_macro$
 }
 DROP
 CALLREF {
@@ -287,31 +294,31 @@ CALLREF {
 }
 THROW 0
 
-.macro saveOutMailAddress_0d6b0949_internal_macro
-.loc ../contracts/MailAccount.sol, 35
+.macro saveOutMailAddress_83707ac0_internal_macro
+.loc ../contracts/MailAccount.tsol, 35
 GETGLOB 9
 GETGLOB 10
 SDEQ
 THROWIFNOT 1004
-.loc ../contracts/MailAccount.sol, 61
+.loc ../contracts/MailAccount.tsol, 61
 CALLREF {
 	CALL $_reserve_413ab4a8_internal_macro$
 }
 PUSHINT 0
 RAWRESERVE
-.loc ../contracts/MailAccount.sol, 63
+.loc ../contracts/MailAccount.tsol, 63
 GETGLOB 15
 PUSHINT 1
 CALLREF {
 	CALL $getOrCreateMailBox_471096eb_internal_macro$
 }
-.loc ../contracts/MailAccount.sol, 64
+.loc ../contracts/MailAccount.tsol, 64
 GETGLOB 15
 INC
 UFITS 128
 SETGLOB 15
-.loc ../contracts/MailAccount.sol, 66
-OVER
+.loc ../contracts/MailAccount.tsol, 66
+PUSH S3
 PUSHSLICE xc000000000000000000000000063f42ae2
 NEWC
 STSLICE
@@ -319,21 +326,24 @@ STSLICE
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/MailAccount.sol, 67
+.loc ../contracts/MailAccount.tsol, 67
+XCHG S1, S3
 NEWC
 STSLICECONST x62_
 STSLICE
 PUSHINT 9789369574394656757036770681243717074945
 STUR 135
-SWAP
+ROLLREV 3
 NEWC
-STSLICECONST x646b10c2
+STSLICECONST x24723040
 STSLICE
+STREF
+STU 16
 STBREFR
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc ../contracts/MailAccount.sol, 68
+.loc ../contracts/MailAccount.tsol, 68
 GETGLOB 10
 NEWC
 STSLICECONST x62_
@@ -344,36 +354,36 @@ STU 32
 ENDC
 PUSHPOW2 7
 SENDRAWMSG
-.loc ../contracts/MailAccount.sol, 0
+.loc ../contracts/MailAccount.tsol, 0
 
 .globl	getOrCreateMailBox_471096eb_internal
 .type	getOrCreateMailBox_471096eb_internal, @function
 CALL $getOrCreateMailBox_471096eb_internal_macro$
 
 .macro getOrCreateMailBox_471096eb_internal_macro
-.loc ../contracts/MailAccount.sol, 72
+.loc ../contracts/MailAccount.tsol, 72
 OVER
 PUSHINT 1000
 DIV
-.loc ../contracts/MailAccount.sol, 73
+.loc ../contracts/MailAccount.tsol, 73
 ROT
 PUSHINT 1000
 MOD
 PUSHCONT {
-	.loc ../contracts/MailAccount.sol, 75
+	.loc ../contracts/MailAccount.tsol, 75
 	SWAP
 	CALLREF {
 		CALL $_deployMailBox_dae4b44d_internal_macro$
 	}
-	.loc ../contracts/MailAccount.sol, 0
+	.loc ../contracts/MailAccount.tsol, 0
 }
 IFNOTJMP
-.loc ../contracts/MailAccount.sol, 77
+.loc ../contracts/MailAccount.tsol, 77
 SWAP
 CALLREF {
 	CALL $getMailBoxAddress_4be162ad_internal_macro$
 }
-.loc ../contracts/MailAccount.sol, 0
+.loc ../contracts/MailAccount.tsol, 0
 
 .macro calculateMailBoxAddress
 DROP
@@ -384,7 +394,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/MailAccount.sol, 80
+.loc ../contracts/MailAccount.tsol, 80
 LDU 32
 GETGLOB 4
 ROT
@@ -396,7 +406,7 @@ OVER
 GTINT 1
 THROWIF 73
 ENDS
-.loc ../contracts/MailAccount.sol, 0
+.loc ../contracts/MailAccount.tsol, 0
 CALLREF {
 	CALL $calculateMailBoxAddress_08d3b137_internal_macro$
 }
@@ -463,11 +473,11 @@ THROW 0
 CALL $calculateMailBoxAddress_08d3b137_internal_macro$
 
 .macro calculateMailBoxAddress_08d3b137_internal_macro
-.loc ../contracts/MailAccount.sol, 81
+.loc ../contracts/MailAccount.tsol, 81
 SWAP
 PUSHINT 1000
 DIV
-.loc ../contracts/MailAccount.sol, 82
+.loc ../contracts/MailAccount.tsol, 82
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -480,7 +490,7 @@ SWAP
 CALLREF {
 	CALL $getMailBoxAddress_4be162ad_internal_macro$
 }
-.loc ../contracts/MailAccount.sol, 0
+.loc ../contracts/MailAccount.tsol, 0
 
 .macro getMailBoxAddress
 DROP
@@ -491,7 +501,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc ../contracts/MailAccount.sol, 85
+.loc ../contracts/MailAccount.tsol, 85
 LDU 32
 GETGLOB 4
 ROT
@@ -503,7 +513,7 @@ OVER
 GTINT 1
 THROWIF 73
 ENDS
-.loc ../contracts/MailAccount.sol, 0
+.loc ../contracts/MailAccount.tsol, 0
 CALLREF {
 	CALL $getMailBoxAddress_4be162ad_internal_macro$
 }
@@ -570,7 +580,7 @@ THROW 0
 CALL $getMailBoxAddress_4be162ad_internal_macro$
 
 .macro getMailBoxAddress_4be162ad_internal_macro
-.loc ../contracts/MailAccount.sol, 86
+.loc ../contracts/MailAccount.tsol, 86
 GETGLOB 4
 PUSHINT 0
 SETINDEXQ 2
@@ -588,14 +598,14 @@ STSLICECONST x801_
 STU 256
 ENDC
 CTOS
-.loc ../contracts/MailAccount.sol, 0
+.loc ../contracts/MailAccount.tsol, 0
 
 .globl	_buildMailBoxInitData_a8827400_internal
 .type	_buildMailBoxInitData_a8827400_internal, @function
 CALL $_buildMailBoxInitData_a8827400_internal_macro$
 
 .macro _buildMailBoxInitData_a8827400_internal_macro
-.loc ../contracts/MailAccount.sol, 92
+.loc ../contracts/MailAccount.tsol, 92
 PUSHINT 0
 NEWC
 STU 256
@@ -632,14 +642,14 @@ STOPTREF
 STOPTREF
 STZERO
 ENDC
-.loc ../contracts/MailAccount.sol, 0
+.loc ../contracts/MailAccount.tsol, 0
 
 .globl	_deployMailBox_dae4b44d_internal
 .type	_deployMailBox_dae4b44d_internal, @function
 CALL $_deployMailBox_dae4b44d_internal_macro$
 
 .macro _deployMailBox_dae4b44d_internal_macro
-.loc ../contracts/MailAccount.sol, 105
+.loc ../contracts/MailAccount.tsol, 105
 CALLREF {
 	CALL $_buildMailBoxInitData_a8827400_internal_macro$
 }
@@ -684,7 +694,7 @@ STSLICECONST x345aaf9fc_
 ENDC
 PUSHINT 1
 SENDRAWMSG
-.loc ../contracts/MailAccount.sol, 0
+.loc ../contracts/MailAccount.tsol, 0
 
 .macro c4_to_c7
 PUSHROOT
@@ -945,16 +955,16 @@ IFJMPREF {
 		CALL $calculateMailBoxAddress$
 	}
 	DUP
+	PUSHINT 748844896
+	EQUAL
+	IFJMPREF {
+		CALL $saveOutMailAddress$
+	}
+	DUP
 	PUSHINT 891820276
 	EQUAL
 	IFJMPREF {
 		CALL $getMailBoxAddress$
-	}
-	DUP
-	PUSHINT 906218795
-	EQUAL
-	IFJMPREF {
-		CALL $saveOutMailAddress$
 	}
 	DUP
 	PUSHINT 1196840156
@@ -968,16 +978,16 @@ PUSHINT 1981807558
 LEQ
 IFJMPREF {
 	DUP
-	PUSHINT 1278689263
-	EQUAL
-	IFJMPREF {
-		CALL $saveInMailAddress$
-	}
-	DUP
 	PUSHINT 1309451937
 	EQUAL
 	IFJMPREF {
 		CALL $mailBoxCode$
+	}
+	DUP
+	PUSHINT 1666924811
+	EQUAL
+	IFJMPREF {
+		CALL $saveInMailAddress$
 	}
 	DUP
 	PUSHINT 1981807558

@@ -1,0 +1,186 @@
+pragma ever-solidity ^0.62.0;
+
+pragma AbiHeader expire;
+pragma AbiHeader pubkey;
+
+
+import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
+import "@broxus/contracts/contracts/utils/RandomNonce.tsol";
+import "@broxus/contracts/contracts/access/InternalOwner.tsol";
+import "./libraries/Errors.tsol";
+import "./libraries/Gas.tsol";
+import "./interfaces/IMailAccount.tsol";
+import "./interfaces/IMailRoot.tsol";
+import "./MailAccount.tsol";
+import "./Mail.tsol";
+
+
+contract MailRoot is IMailRoot, RandomNonce {
+    TvmCell static accountCode;
+    TvmCell static mailBoxCode;
+    TvmCell static mailCode;
+    uint32 public mailCount = 0;
+    event MailCreated(address sender, address mail);
+
+    struct MailUser {
+        address addr;
+        uint256 pubkey;
+    }
+
+    struct PendingMail {
+        MailUser user;
+        address mail;
+        bytes meta;
+        uint16 metaVersion;
+        address send_gas_to;
+    }
+    uint32 _mail_nonce = 0;
+    mapping (uint32 => PendingMail) _pending_mails;
+    uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
+
+    constructor () public {
+        require (tvm.pubkey() != 0, Errors.WRONG_PUBKEY);
+        require (tvm.pubkey() == msg.pubkey(), Errors.WRONG_PUBKEY);
+        tvm.accept();
+    }
+
+    function _reserve() internal pure returns (uint128) {
+        return math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
+    }
+
+    function _deployMail(bytes encryptedMail) internal returns (address mail) {
+        mailCount += 1;
+        mail = new Mail{
+                stateInit: _buildMailInitData(mailCount),
+                value: Gas.MAIL_DEPLOY_VALUE,
+                flag: MsgFlag.SENDER_PAYS_FEES
+        }(encryptedMail, msg.sender);
+        emit MailCreated(msg.sender, mail);
+    }
+
+    function _saveOutMail(address mail, bytes meta, uint16 metaVersion, address send_gas_to) internal {
+        address sender_mail_account = getMailAccountAddress(MailUser(msg.sender, 0));
+        _mail_nonce += 1;
+        _pending_mails[_mail_nonce] = PendingMail(MailUser(msg.sender, 0), mail, meta, metaVersion, send_gas_to);
+        IMailAccount(sender_mail_account).saveOutMailAddress{value: Gas.SAVE_MAIL_VALUE}(_mail_nonce, mail, meta, metaVersion);
+    }
+
+    function _saveInMail(MailUser user, address mail, bytes meta, uint16 metaVersion, address send_gas_to) internal {
+        address receiver_mail_account = getMailAccountAddress(user);
+        _mail_nonce += 1;
+        _pending_mails[_mail_nonce] = PendingMail(user, mail, meta, metaVersion, send_gas_to);
+        IMailAccount(receiver_mail_account).saveInMailAddress{value: Gas.SAVE_MAIL_VALUE}(_mail_nonce, mail, meta, metaVersion);
+    }
+
+    function sendMails(
+        MailUser[] receivers,
+        bytes encryptedMail,
+        bytes senderMeta,
+        bytes[] receiverMeta,
+        uint16 metaVersion,
+        address send_gas_to
+    ) external {
+        require (receivers.length == receiverMeta.length, Errors.BAD_INPUT);
+        require (msg.value >= Gas.MAIL_DEPLOY_VALUE + Gas.SAVE_MAIL_VALUE * receivers.length + 0.01 ever * receivers.length, Errors.LOW_MSG_VALUE);
+
+        tvm.rawReserve(_reserve(), 0);
+
+        address mail = _deployMail(encryptedMail);
+        _saveOutMail(mail, senderMeta, metaVersion, send_gas_to);
+
+        for (uint i = 0; i < receivers.length; i++) {
+            MailUser _user = receivers[i];
+            require (_user.pubkey == 0 || _user.addr == address.makeAddrStd(address(this).wid, 0), Errors.BAD_INPUT);
+
+            _saveInMail(_user, mail, receiverMeta[i], metaVersion, send_gas_to);
+        }
+
+        send_gas_to.transfer({ value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED });
+
+    }
+
+    function onMailSaved(uint32 nonce) external override {
+        tvm.rawReserve(_reserve(), 0);
+
+        PendingMail _mail = _pending_mails[nonce];
+        address mail_acc = getMailAccountAddress(_mail.user);
+
+        require (msg.sender == mail_acc, Errors.NOT_MAIL_ACC);
+
+        delete _pending_mails[nonce];
+        _mail.send_gas_to.transfer({ value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED });
+    }
+
+    function getMailAccountAddress(MailUser user) public view responsible returns (address) {
+        return { value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false } address(
+            tvm.hash(_buildAccountInitData(user))
+        );
+    }
+
+    function _buildAccountInitData(MailUser receiver) internal view returns (TvmCell) {
+        return tvm.buildStateInit({
+            contr: MailAccount,
+            varInit: {
+                root: address(this),
+                user: receiver.addr,
+                pubkey: receiver.pubkey,
+                mailBoxCode: mailBoxCode
+            },
+            pubkey: 0,
+            code: accountCode
+        });
+    }
+
+    function _deployMailAccount(MailUser receiver, address send_gas_to) internal view returns (address) {
+        return new MailAccount{
+            stateInit: _buildAccountInitData(receiver),
+            value: Gas.ACCOUNT_DEPLOY_VALUE
+        }(send_gas_to);
+    }
+
+    function _buildMailInitData(uint128 _nonce) internal view returns (TvmCell) {
+        return tvm.buildStateInit({
+            contr: Mail,
+            varInit: {
+                root: address(this),
+                nonce: _nonce
+            },
+            pubkey: 0,
+            code: mailCode
+        });
+    }
+
+    function getMailAddress(uint128 _nonce) public view responsible returns (address) {
+        return { value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false } address(
+            tvm.hash(_buildMailInitData(_nonce))
+        );
+    }
+
+    onBounce(TvmSlice slice) external view {
+        tvm.accept();
+
+        uint32 functionId = slice.decode(uint32);
+        // if processing failed - contract was not deployed. Deploy and try again
+        if (functionId == tvm.functionId(IMailAccount.saveOutMailAddress)) {
+            tvm.rawReserve(_reserve(), 0);
+
+            uint32 _nonce = slice.decode(uint32);
+            PendingMail _mail = _pending_mails[_nonce];
+            address mail_acc = _deployMailAccount(_mail.user, _mail.send_gas_to);
+
+            IMailAccount(mail_acc).saveOutMailAddress{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(
+                _nonce, _mail.mail, _mail.meta, _mail.metaVersion
+            );
+        } else if (functionId == tvm.functionId(IMailAccount.saveInMailAddress)) {
+            tvm.rawReserve(_reserve(), 0);
+
+            uint32 _nonce = slice.decode(uint32);
+            PendingMail _mail = _pending_mails[_nonce];
+            address mail_acc = _deployMailAccount(_mail.user, _mail.send_gas_to);
+
+            IMailAccount(mail_acc).saveInMailAddress{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(
+                _nonce, _mail.mail, _mail.meta, _mail.metaVersion
+            );
+        }
+    }
+}

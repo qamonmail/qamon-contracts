@@ -1,12 +1,12 @@
 pragma ever-solidity ^0.62.0;
 
 
-import "./MailBox.sol";
-import "./interfaces/IMailAccount.sol";
-import "./interfaces/IMailBox.sol";
-import "./interfaces/IMailRoot.sol";
-import "./libraries/Gas.sol";
-import "./libraries/Errors.sol";
+import "./MailBox.tsol";
+import "./interfaces/IMailAccount.tsol";
+import "./interfaces/IMailBox.tsol";
+import "./interfaces/IMailRoot.tsol";
+import "./libraries/Gas.tsol";
+import "./libraries/Errors.tsol";
 import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
 
 
@@ -14,7 +14,7 @@ contract MailAccount is IMailAccount {
     address static root;
     address static user;
     uint static pubkey;
-    TvmCell static public mailBoxCode;
+    TvmCell public static mailBoxCode;
 
     uint128 inMailsNum = 0;
     uint128 outMailsNum = 0;
@@ -46,25 +46,25 @@ contract MailAccount is IMailAccount {
         return { value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false }(root, user, pubkey, inMailsNum, outMailsNum);
     }
 
-    function saveInMailAddress(uint32 nonce, address mail) external override onlyRoot {
+    function saveInMailAddress(uint32 nonce, address mail, bytes meta, uint16 metaVersion) external override onlyRoot {
         tvm.rawReserve(_reserve(), 0);
 
         address box = getOrCreateMailBox(inMailsNum, MailBoxType.Inbox);
         inMailsNum++;
 
         emit InMail(mail);
-        IMailBox(box).saveMail{value: 0.01 ever}(mail);
+        IMailBox(box).saveMail{value: 0.01 ever}(mail, meta, metaVersion);
         IMailRoot(root).onMailSaved{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(nonce);
     }
 
-    function saveOutMailAddress(uint32 nonce, address mail) external override onlyRoot {
+    function saveOutMailAddress(uint32 nonce, address mail, bytes meta, uint16 metaVersion) external override onlyRoot {
         tvm.rawReserve(_reserve(), 0);
 
         address box = getOrCreateMailBox(outMailsNum, MailBoxType.Outbox);
         outMailsNum++;
 
         emit OutMail(mail);
-        IMailBox(box).saveMail{value: 0.01 ever}(mail);
+        IMailBox(box).saveMail{value: 0.01 ever}(mail, meta, metaVersion);
         IMailRoot(root).onMailSaved{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(nonce);
     }
 
