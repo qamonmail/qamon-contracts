@@ -17,6 +17,7 @@ contract MailBox is IMailBox {
     struct Mail {
         address mail;
         bytes meta;
+        address sender;
         uint16 metaVersion;
     }
 
@@ -39,10 +40,10 @@ contract MailBox is IMailBox {
         return { value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false }mails[idx];
     }
 
-    function saveMail(address mail, bytes meta, uint16 metaVersion) external override {
+    function saveMail(address mail, bytes meta, address sender, uint16 metaVersion) external override {
         require (msg.sender == root, Errors.NOT_ROOT);
 
-        mails.push(Mail(mail, meta, metaVersion));
+        mails.push(Mail(mail, meta, sender, metaVersion));
         mailsNum++;
     }
 }

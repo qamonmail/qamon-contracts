@@ -2,15 +2,32 @@ import { LockliftConfig } from "locklift";
 import { FactorySource } from "./build/factorySource";
 import { SimpleGiver, GiverWallet, GiverWalletV2_3 } from "./giverSettings";
 import * as dotenv from "dotenv";
+import "locklift-verifier";
+import "locklift-deploy";
+import { Deployments } from "locklift-deploy";
 
 declare global {
   const locklift: import("locklift").Locklift<FactorySource>;
 }
+
+declare module "locklift" {
+  //@ts-ignore
+  export interface Locklift {
+    deployments: Deployments<FactorySource>;
+  }
+}
 dotenv.config();
 
 const LOCAL_NETWORK_ENDPOINT = "http://localhost:5000/graphql";
+const VENOM_TESTNET_ENDPOINT = "https://jrpc-testnet.venom.foundation/rpc";
 
 const config: LockliftConfig = {
+  verifier: {
+    verifierVersion: "latest", // contract verifier binary, see https://github.com/broxus/everscan-verify
+    apiKey: process.env.VERIFIER_KEY || "",
+    secretKey: process.env.VERIFIER_SECRET || "",
+    // license: "AGPL-3.0-or-later", <- this is default value and can be overrided
+  },
   compiler: {
     // Specify path to your TON-Solidity-Compiler
     // path: "/mnt/o/projects/broxus/TON-Solidity-Compiler/build/solc/solc",
@@ -30,7 +47,7 @@ const config: LockliftConfig = {
     // path: "/mnt/o/projects/broxus/TVM-linker/target/release/tvm_linker",
 
     // Or specify version of linker
-    version: "0.15.47",
+    version: "0.15.48",
   },
   networks: {
     local: {
@@ -80,6 +97,31 @@ const config: LockliftConfig = {
         phrase: process.env.MAIN_SEED_PHRASE ?? "",
         amount: 500
       }
+    },
+    venom_testnet: {
+      connection: {
+        id: 1000,
+        type: "jrpc",
+        group: "dev",
+        data: {
+          endpoint: VENOM_TESTNET_ENDPOINT,
+        },
+      },
+      giver: {
+        giverFactory: (ever, keyPair, address) => new GiverWalletV2_3(ever, keyPair, address),
+        address: "0:f6b457fe3bc70bc58069dd6eb01e43431be9b459e806ec812ab895fb0f2e7843",
+        phrase: process.env.VENOM_TESTNET_SEED_PHRASE ?? "",
+        accountId: 0
+      },
+      tracing: {
+        endpoint: process.env.VENOM_TESTNET_GQL_ENDPOINT ?? ""
+      },
+      keys: {
+        // Use everdev to generate your phrase
+        // !!! Never commit it in your repos !!!
+        phrase: process.env.VENOM_TESTNET_SEED_PHRASE ?? "",
+        amount: 20,
+      },
     },
   },
   mocha: {

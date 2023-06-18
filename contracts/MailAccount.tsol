@@ -53,18 +53,18 @@ contract MailAccount is IMailAccount {
         inMailsNum++;
 
         emit InMail(mail);
-        IMailBox(box).saveMail{value: 0.01 ever}(mail, meta, metaVersion);
+        IMailBox(box).saveMail{value: 0.01 ever}(mail, meta, sender, metaVersion);
         IMailRoot(root).onMailSaved{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(nonce);
     }
 
-    function saveOutMailAddress(uint32 nonce, address mail, bytes meta, uint16 metaVersion) external override onlyRoot {
+    function saveOutMailAddress(uint32 nonce, address mail, bytes meta, address sender, uint16 metaVersion) external override onlyRoot {
         tvm.rawReserve(_reserve(), 0);
 
         address box = getOrCreateMailBox(outMailsNum, MailBoxType.Outbox);
         outMailsNum++;
 
         emit OutMail(mail);
-        IMailBox(box).saveMail{value: 0.01 ever}(mail, meta, metaVersion);
+        IMailBox(box).saveMail{value: 0.01 ever}(mail, meta, sender, metaVersion);
         IMailRoot(root).onMailSaved{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(nonce);
     }
 

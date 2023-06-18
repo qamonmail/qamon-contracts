@@ -31,6 +31,7 @@ contract MailRoot is IMailRoot, RandomNonce {
         MailUser user;
         address mail;
         bytes meta;
+        address sender;
         uint16 metaVersion;
         address send_gas_to;
     }
@@ -58,18 +59,18 @@ contract MailRoot is IMailRoot, RandomNonce {
         emit MailCreated(msg.sender, mail);
     }
 
-    function _saveOutMail(address mail, bytes meta, uint16 metaVersion, address send_gas_to) internal {
+    function _saveOutMail(address mail, bytes meta, address sender, uint16 metaVersion, address send_gas_to) internal {
         address sender_mail_account = getMailAccountAddress(MailUser(msg.sender, 0));
         _mail_nonce += 1;
-        _pending_mails[_mail_nonce] = PendingMail(MailUser(msg.sender, 0), mail, meta, metaVersion, send_gas_to);
-        IMailAccount(sender_mail_account).saveOutMailAddress{value: Gas.SAVE_MAIL_VALUE}(_mail_nonce, mail, meta, metaVersion);
+        _pending_mails[_mail_nonce] = PendingMail(MailUser(msg.sender, 0), mail, meta, sender, metaVersion, send_gas_to);
+        IMailAccount(sender_mail_account).saveOutMailAddress{value: Gas.SAVE_MAIL_VALUE}(_mail_nonce, mail, meta, sender, metaVersion);
     }
 
-    function _saveInMail(MailUser user, address mail, bytes meta, uint16 metaVersion, address send_gas_to) internal {
+    function _saveInMail(MailUser user, address mail, address sender, bytes meta, uint16 metaVersion, address send_gas_to) internal {
         address receiver_mail_account = getMailAccountAddress(user);
         _mail_nonce += 1;
-        _pending_mails[_mail_nonce] = PendingMail(user, mail, meta, metaVersion, send_gas_to);
-        IMailAccount(receiver_mail_account).saveInMailAddress{value: Gas.SAVE_MAIL_VALUE}(_mail_nonce, mail, meta, metaVersion);
+        _pending_mails[_mail_nonce] = PendingMail(user, mail, meta, sender, metaVersion, send_gas_to);
+        IMailAccount(receiver_mail_account).saveInMailAddress{value: Gas.SAVE_MAIL_VALUE}(_mail_nonce, mail, meta, sender, metaVersion);
     }
 
     function sendMails(
@@ -86,13 +87,13 @@ contract MailRoot is IMailRoot, RandomNonce {
         tvm.rawReserve(_reserve(), 0);
 
         address mail = _deployMail(encryptedMail);
-        _saveOutMail(mail, senderMeta, metaVersion, send_gas_to);
+        _saveOutMail(mail, senderMeta, msg.sender, metaVersion, send_gas_to);
 
         for (uint i = 0; i < receivers.length; i++) {
             MailUser _user = receivers[i];
             require (_user.pubkey == 0 || _user.addr == address.makeAddrStd(address(this).wid, 0), Errors.BAD_INPUT);
 
-            _saveInMail(_user, mail, receiverMeta[i], metaVersion, send_gas_to);
+            _saveInMail(_user, mail, msg.sender, receiverMeta[i], metaVersion, send_gas_to);
         }
 
         send_gas_to.transfer({ value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED });
@@ -119,7 +120,7 @@ contract MailRoot is IMailRoot, RandomNonce {
 
     function _buildAccountInitData(MailUser receiver) internal view returns (TvmCell) {
         return tvm.buildStateInit({
-            contr: MailAccount,
+            contr: MailAccount, 
             varInit: {
                 root: address(this),
                 user: receiver.addr,

@@ -24,5 +24,5 @@ npx locklift test -n local
 ## Deploy to mainnet
 1. Run deploy script
 ```
-npx locklift run -n mainnet --script scripts/1-deploy-root.ts
-```
+everscale mainet: npx locklift run -n mainnet --script scripts/1-deploy-root.ts
+venom testnet: npx locklift run -n venom_testnet --script scripts/1-deploy-root.ts
