@@ -5,7 +5,6 @@ import "./interfaces/IMailAccount.tsol";
 import "./interfaces/IMailBox.tsol";
 import "./libraries/Errors.tsol";
 import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
-import "locklift/src/console.tsol";
 
 
 contract MailBox is IMailBox {
@@ -34,10 +33,6 @@ contract MailBox is IMailBox {
         uint128 _mailsNum
     ) {
         return { value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false }(root, nonce, boxType, mailsNum);
-    }
-
-    function getMail(uint idx) external view responsible returns (Mail) {
-        return { value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false }mails[idx];
     }
 
     function saveMail(address mail, bytes meta, address sender, uint16 metaVersion) external override {

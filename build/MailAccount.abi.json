@@ -30,6 +30,7 @@
 				{"name":"nonce","type":"uint32"},
 				{"name":"mail","type":"address"},
 				{"name":"meta","type":"bytes"},
+				{"name":"sender","type":"address"},
 				{"name":"metaVersion","type":"uint16"}
 			],
 			"outputs": [
