@@ -86,7 +86,7 @@ const config: LockliftConfig = {
       giver: {
         // Check if you need provide custom giver
         giverFactory: (ever, keyPair, address) => new GiverWalletV2_3(ever, keyPair, address),
-        address: "0:4758012a7dfd31bef6203721d11f9d5de07d4150d011090c9ba2fadc28343712",
+        address: "0:f8938c6b8ed47a4b2fb2c3f85054e899918a812724a3d9f84ccbf65016b20638",
         phrase: process.env.MAIN_SEED_PHRASE ?? "",
         accountId: 0
       },

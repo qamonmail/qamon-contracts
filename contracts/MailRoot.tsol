@@ -38,6 +38,7 @@ contract MailRoot is IMailRoot, RandomNonce {
     uint32 _mail_nonce = 0;
     mapping (uint32 => PendingMail) _pending_mails;
     uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
+    uint128 constant FIXED_COMMISSION = 0.03 ever;
 
     constructor () public {
         require (tvm.pubkey() != 0, Errors.WRONG_PUBKEY);
@@ -45,8 +46,16 @@ contract MailRoot is IMailRoot, RandomNonce {
         tvm.accept();
     }
 
-    function _reserve() internal pure returns (uint128) {
-        return math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
+    // function _reserve() internal pure returns (uint128) {
+    //     return math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
+    // }
+
+
+    function _reserve() internal view returns (uint128) {
+        int256 remainingValue = msg.value - FIXED_COMMISSION;
+        uint256 reservedBalance = math.max(address(this).balance - remainingValue, CONTRACT_MIN_BALANCE);
+
+        return uint128(reservedBalance);
     }
 
     function _deployMail(bytes encryptedMail) internal returns (address mail) {
@@ -82,7 +91,7 @@ contract MailRoot is IMailRoot, RandomNonce {
         address send_gas_to
     ) external {
         require (receivers.length == receiverMeta.length, Errors.BAD_INPUT);
-        require (msg.value >= Gas.MAIL_DEPLOY_VALUE + Gas.SAVE_MAIL_VALUE * receivers.length + 0.01 ever * receivers.length, Errors.LOW_MSG_VALUE);
+        require (msg.value >= Gas.MAIL_DEPLOY_VALUE + FIXED_COMMISSION + Gas.SAVE_MAIL_VALUE * receivers.length + 0.01 ever * receivers.length, Errors.LOW_MSG_VALUE);
 
         tvm.rawReserve(_reserve(), 0);
 
