@@ -46,16 +46,8 @@ contract MailRoot is IMailRoot, RandomNonce {
         tvm.accept();
     }
 
-    // function _reserve() internal pure returns (uint128) {
-    //     return math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
-    // }
-
-
     function _reserve() internal view returns (uint128) {
-        int256 remainingValue = msg.value - FIXED_COMMISSION;
-        uint128 reservedBalance = math.max(address(this).balance - remainingValue, CONTRACT_MIN_BALANCE);
-
-        return uint128(reservedBalance);
+        return math.max(address(this).balance - (msg.value - FIXED_COMMISSION), CONTRACT_MIN_BALANCE);
     }
 
     function _deployMail(bytes encryptedMail) internal returns (address mail) {
