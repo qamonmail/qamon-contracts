@@ -19,6 +19,8 @@ contract MailRoot is IMailRoot, RandomNonce {
     TvmCell static accountCode;
     TvmCell static mailBoxCode;
     TvmCell static mailCode;
+    address static root;
+
     uint32 public mailCount = 0;
     event MailCreated(address sender, address mail);
 
@@ -39,10 +41,10 @@ contract MailRoot is IMailRoot, RandomNonce {
     mapping (uint32 => PendingMail) _pending_mails;
     uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
     uint128 constant FIXED_COMMISSION = 0.03 ever;
-
     constructor () public {
         require (tvm.pubkey() != 0, Errors.WRONG_PUBKEY);
         require (tvm.pubkey() == msg.pubkey(), Errors.WRONG_PUBKEY);
+        root = msg.sender;
         tvm.accept();
     }
 
@@ -155,6 +157,11 @@ contract MailRoot is IMailRoot, RandomNonce {
         return { value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false } address(
             tvm.hash(_buildMailInitData(_nonce))
         );
+    }
+
+    function getCommissionToOwner() external {
+        require (msg.sender == root, Errors.NOT_ROOT);
+        root.transfer({ value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED });
     }
 
     onBounce(TvmSlice slice) external view {
