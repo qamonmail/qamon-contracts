@@ -20,6 +20,8 @@ contract MailRoot is IMailRoot, RandomNonce {
     TvmCell static mailBoxCode;
     TvmCell static mailCode;
     uint32 public mailCount = 0;
+    address public owner;
+
     event MailCreated(address sender, address mail);
 
     struct MailUser {
@@ -38,15 +40,17 @@ contract MailRoot is IMailRoot, RandomNonce {
     uint32 _mail_nonce = 0;
     mapping (uint32 => PendingMail) _pending_mails;
     uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
+    uint128 constant FIXED_COMMISSION = 0.03 ever;
 
-    constructor () public {
+    constructor (address _owner) public {
         require (tvm.pubkey() != 0, Errors.WRONG_PUBKEY);
         require (tvm.pubkey() == msg.pubkey(), Errors.WRONG_PUBKEY);
         tvm.accept();
+        owner = _owner;
     }
 
-    function _reserve() internal pure returns (uint128) {
-        return math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
+    function _reserve() internal view returns (uint128) {
+        return math.max(address(this).balance - (msg.value - FIXED_COMMISSION), CONTRACT_MIN_BALANCE);
     }
 
     function _deployMail(bytes encryptedMail) internal returns (address mail) {
@@ -82,8 +86,7 @@ contract MailRoot is IMailRoot, RandomNonce {
         address send_gas_to
     ) external {
         require (receivers.length == receiverMeta.length, Errors.BAD_INPUT);
-        require (msg.value >= Gas.MAIL_DEPLOY_VALUE + Gas.SAVE_MAIL_VALUE * receivers.length + 0.01 ever * receivers.length, Errors.LOW_MSG_VALUE);
-
+        require (msg.value >= Gas.MAIL_DEPLOY_VALUE + FIXED_COMMISSION + Gas.SAVE_MAIL_VALUE * receivers.length + 0.01 ever * receivers.length, Errors.LOW_MSG_VALUE);
         tvm.rawReserve(_reserve(), 0);
 
         address mail = _deployMail(encryptedMail);
@@ -154,6 +157,12 @@ contract MailRoot is IMailRoot, RandomNonce {
         return { value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false } address(
             tvm.hash(_buildMailInitData(_nonce))
         );
+    }
+
+    function withdrawCommission() external {
+        require (msg.sender == owner, Errors.NOT_ROOT);
+        tvm.rawReserve(CONTRACT_MIN_BALANCE, 0);
+        owner.transfer({ value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED });
     }
 
     onBounce(TvmSlice slice) external view {

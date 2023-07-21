@@ -6,6 +6,7 @@
 		{
 			"name": "constructor",
 			"inputs": [
+				{"name":"_owner","type":"address"}
 			],
 			"outputs": [
 			]
@@ -52,6 +53,13 @@
 			]
 		},
 		{
+			"name": "withdrawCommission",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "_randomNonce",
 			"inputs": [
 			],
@@ -65,6 +73,14 @@
 			],
 			"outputs": [
 				{"name":"mailCount","type":"uint32"}
+			]
+		},
+		{
+			"name": "owner",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"owner","type":"address"}
 			]
 		}
 	],
@@ -94,6 +110,7 @@
 		{"name":"mailBoxCode","type":"cell"},
 		{"name":"mailCode","type":"cell"},
 		{"name":"mailCount","type":"uint32"},
+		{"name":"owner","type":"address"},
 		{"name":"_mail_nonce","type":"uint32"},
 		{"components":[{"components":[{"name":"addr","type":"address"},{"name":"pubkey","type":"uint256"}],"name":"user","type":"tuple"},{"name":"mail","type":"address"},{"name":"meta","type":"bytes"},{"name":"sender","type":"address"},{"name":"metaVersion","type":"uint16"},{"name":"send_gas_to","type":"address"}],"name":"_pending_mails","type":"map(uint32,tuple)"}
 	]

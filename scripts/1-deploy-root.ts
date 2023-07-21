@@ -19,7 +19,9 @@ async function main() {
             accountCode: MailAccount.code,
             _randomNonce: getRandomNonce()
         },
-        constructorParams: {},
+        constructorParams: {
+            _owner: "0:f8938c6b8ed47a4b2fb2c3f85054e899918a812724a3d9f84ccbf65016b20638"
+        },
         value: toNano(2),
         publicKey: signer?.publicKey as string
     }));
