@@ -20,7 +20,7 @@ async function main() {
             _randomNonce: getRandomNonce()
         },
         constructorParams: {
-            _owner: "0:f8938c6b8ed47a4b2fb2c3f85054e899918a812724a3d9f84ccbf65016b20638"
+            _owner: "0:f6b457fe3bc70bc58069dd6eb01e43431be9b459e806ec812ab895fb0f2e7843"
         },
         value: toNano(2),
         publicKey: signer?.publicKey as string
