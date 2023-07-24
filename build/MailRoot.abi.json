@@ -94,6 +94,11 @@
 		{
 			"name": "MailCreated",
 			"inputs": [
+				{"components":[{"name":"addr","type":"address"},{"name":"pubkey","type":"uint256"}],"name":"receivers","type":"tuple[]"},
+				{"name":"encryptedMail","type":"bytes"},
+				{"name":"senderMeta","type":"bytes"},
+				{"name":"receiverMeta","type":"bytes[]"},
+				{"name":"metaVersion","type":"uint16"},
 				{"name":"sender","type":"address"},
 				{"name":"mail","type":"address"}
 			],
