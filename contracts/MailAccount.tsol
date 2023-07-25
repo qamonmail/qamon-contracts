@@ -22,8 +22,8 @@ contract MailAccount is IMailAccount {
     uint32 constant MAX_MAILS_PER_BOX = 1000;
     uint128 constant CONTRACT_MIN_BALANCE = 0.1 ever;
 
-    event InMail(address mail);
-    event OutMail(address mail);
+    event InMail(address mail, bytes meta, address sender, uint16 metaVersion);
+    event OutMail(address mail, bytes meta, uint16 metaVersion);
 
     constructor (address send_gas_to) public onlyRoot {}
 
@@ -52,7 +52,7 @@ contract MailAccount is IMailAccount {
         address box = getOrCreateMailBox(inMailsNum, MailBoxType.Inbox);
         inMailsNum++;
 
-        emit InMail(mail);
+        emit InMail(mail, meta, sender, metaVersion);
         IMailBox(box).saveMail{value: 0.015 ever, flag: MsgFlag.SENDER_PAYS_FEES}(mail, meta, sender, metaVersion);
         IMailRoot(root).onMailSaved{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(nonce);
     }
@@ -63,7 +63,7 @@ contract MailAccount is IMailAccount {
         address box = getOrCreateMailBox(outMailsNum, MailBoxType.Outbox);
         outMailsNum++;
 
-        emit OutMail(mail);
+        emit OutMail(mail, meta, metaVersion);
         IMailBox(box).saveMail{value: 0.015 ever, flag: MsgFlag.SENDER_PAYS_FEES}(mail, meta, user, metaVersion);
         IMailRoot(root).onMailSaved{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(nonce);
     }

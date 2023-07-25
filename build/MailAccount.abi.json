@@ -88,7 +88,10 @@
 		{
 			"name": "InMail",
 			"inputs": [
-				{"name":"mail","type":"address"}
+				{"name":"mail","type":"address"},
+				{"name":"meta","type":"bytes"},
+				{"name":"sender","type":"address"},
+				{"name":"metaVersion","type":"uint16"}
 			],
 			"outputs": [
 			]
@@ -96,7 +99,9 @@
 		{
 			"name": "OutMail",
 			"inputs": [
-				{"name":"mail","type":"address"}
+				{"name":"mail","type":"address"},
+				{"name":"meta","type":"bytes"},
+				{"name":"metaVersion","type":"uint16"}
 			],
 			"outputs": [
 			]
