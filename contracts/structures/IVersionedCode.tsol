@@ -1,0 +1,14 @@
+pragma ever-solidity ^0.62.0;
+
+interface IVersionedCode {
+    struct CodeInfo {
+        uint256 hash;
+        uint16 depth;
+    }
+
+    struct VersionedCode {
+        TvmCell code;
+        uint32 version;
+        CodeInfo info;
+    }
+}

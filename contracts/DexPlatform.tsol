@@ -1,0 +1,66 @@
+pragma ever-solidity ^0.62.0;
+
+pragma AbiHeader time;
+pragma AbiHeader expire;
+
+import "./structures/IVersions.tsol";
+
+import "@broxus/ever-contracts/contracts/libraries/MsgFlag.tsol";
+import "./libraries/DexPlatformTypes.tsol";
+import "./libraries/DexPlatformUtils.tsol";
+
+contract DexPlatform {
+
+    address static root;
+    uint8 static typeId;
+    TvmCell static params;
+
+    constructor(
+        TvmCell _code,
+        uint32 _version,
+        address _remainingGasTo,
+        TvmCell _extra
+    ) public {
+        if (msg.sender.value == root.value) {
+           _initialize(_code, _version, _remainingGasTo, _extra);
+        } else {
+            _remainingGasTo.transfer({
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.DESTROY_IF_ZERO,
+                bounce: false
+            });
+        }
+    }
+
+    function _initialize(
+        TvmCell _code,
+        uint32 _version,
+        address _remainingGasTo,
+        TvmCell _extra
+    ) private {
+        TvmBuilder builder;
+
+        // versions always must be first to simplify decode of payload in onCodeUpgrade
+        builder.store(
+            IVersions.Versions({
+                current: _version,
+                previous: uint32(0)
+            })
+        );
+        builder.store(_remainingGasTo);
+        builder.store(root);
+
+        builder.storeRef(tvm.code());    // ref 1 = platformCode
+        builder.storeRef(params);        // ref 2 = params
+        builder.storeRef(_extra);        // ref 3 = data for contract that must not affect its address
+
+        // set code after complete this method
+        tvm.setcode(_code);
+
+        // run onCodeUpgrade from new code
+        tvm.setCurrentCode(_code);
+        onCodeUpgrade(builder.toCell());
+    }
+
+    function onCodeUpgrade(TvmCell _data) private {}
+}

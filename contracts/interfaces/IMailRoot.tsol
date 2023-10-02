@@ -1,6 +1,38 @@
 pragma ever-solidity ^0.62.0;
 
+import "../structures/IMailState.tsol";
+import "../structures/IVersionedCode.tsol";
 
-interface IMailRoot {
+
+interface IMailRoot is IVersionedCode {
+
+    event PlatformCodeUpdated(CodeInfo codeInfo);
+    event AccountCodeUpdated(CodeInfo codeInfo);
+    event MailBoxCodeUpdated(CodeInfo codeInfo);
+    event MailCodeUpdated(CodeInfo codeInfo);
+
+    event MailCreated(
+        IMailState.MailUser[] receivers,
+        bytes encryptedMail,
+        bytes senderMeta,
+        bytes[] receiverMeta,
+        uint16 metaVersion,
+        address sender,
+        address mail
+    );
+
+    event UpgradeAccount(address account, uint32 accountVersion);
+
+
+    function getAccountCode() external view responsible returns (VersionedCode);
+
+    function setAccountCode(TvmCell _code) external;
+
     function onMailSaved(uint32 nonce) external;
+
+    function upgradeMailAccounts(
+        address[] _accounts,
+        uint32 _offset,
+        address _remainingGasTo
+    ) external view;
 }

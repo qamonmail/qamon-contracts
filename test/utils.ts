@@ -1,5 +1,5 @@
 import {Contract, getRandomNonce, toNano, WalletTypes} from "locklift";
-import {Account} from 'locklift/everscale-standalone-client';
+import {Account} from 'locklift/everscale-client';
 import {MailAccountAbi, MailRootAbi} from "../build/factorySource";
 
 const logger = require("mocha-logger");

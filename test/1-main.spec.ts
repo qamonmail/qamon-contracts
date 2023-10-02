@@ -30,16 +30,20 @@ describe("Test mail contracts", async function () {
             const MailBox = await locklift.factory.getContractArtifacts('MailBox');
             const MailAccount = await locklift.factory.getContractArtifacts('MailAccount');
             const Mail = await locklift.factory.getContractArtifacts('Mail');
+            const Platform = await locklift.factory.getContractArtifacts('DexPlatform');
 
             const {contract: _root} = await locklift.tracing.trace(locklift.factory.deployContract({
-               contract: 'MailRoot',
-               initParams: {
-                   mailCode: Mail.code,
-                   mailBoxCode: MailBox.code,
-                   accountCode: MailAccount.code,
-                   _randomNonce: getRandomNonce()
-               },
-                constructorParams: {},
+                contract: 'MailRoot',
+                initParams: {
+                   _randomNonce: getRandomNonce(),
+                },
+                constructorParams: {
+                    owner_: user1.address,
+                    platformCode_: Platform.code,
+                    mailCode_: Mail.code,
+                    mailBoxCode_: MailBox.code,
+                    accountCode_: MailAccount.code,
+                },
                 value: toNano(2),
                 publicKey: signer?.publicKey as string
             }));

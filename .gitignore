@@ -38,6 +38,15 @@ bower_components
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 build/Release
 
+# Ignore Mac files
+.DS_Store
+
+build/*.tvc
+build/*.code
+build/*.base64
+build/*.ts
+build/*.map.json
+
 # Dependency directories
 node_modules/
 jspm_packages/
