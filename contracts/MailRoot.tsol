@@ -4,7 +4,7 @@ pragma AbiHeader expire;
 pragma AbiHeader pubkey;
 
 
-import "@broxus/contracts/contracts/utils/RandomNonce.tsol";
+import "@broxus/ever-contracts/contracts/utils/RandomNonce.tsol";
 import "@broxus/ever-contracts/contracts/access/abstract/Ownable.tsol";
 import "@broxus/ever-contracts/contracts/upgrade/abstract/Upgradable.tsol";
 import "./Mail.tsol";

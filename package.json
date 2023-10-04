@@ -9,7 +9,6 @@
   "license": "ISC",
   "devDependencies": {
     "@broxus/ever-contracts": "git://github.com/broxus/ever-contracts#38bbdee",
-    "@broxus/contracts": "^1.1.1",
     "@types/chai": "^4.3.5",
     "@types/mocha": "^10.0.1",
     "@types/node": "^20.2.5",
