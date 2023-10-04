@@ -30,7 +30,7 @@ describe("Test mail contracts", async function () {
             const MailBox = await locklift.factory.getContractArtifacts('MailBox');
             const MailAccount = await locklift.factory.getContractArtifacts('MailAccount');
             const Mail = await locklift.factory.getContractArtifacts('Mail');
-            const Platform = await locklift.factory.getContractArtifacts('DexPlatform');
+            const Platform = await locklift.factory.getContractArtifacts('Platform');
 
             const {contract: _root} = await locklift.tracing.trace(locklift.factory.deployContract({
                 contract: 'MailRoot',

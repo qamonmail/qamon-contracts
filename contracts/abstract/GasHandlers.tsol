@@ -1,0 +1,25 @@
+pragma ever-solidity ^0.62.0;
+
+import "@broxus/ever-contracts/contracts/libraries/MsgFlag.tsol";
+
+abstract contract GasHandlers {
+
+    modifier reserveAndRefund_(
+        uint128 _reserve,
+        optional(address) _remainingGasTo
+    ) {
+        tvm.rawReserve(_reserve, 0);
+
+        address remainingGasTo = _remainingGasTo.hasValue() ? _remainingGasTo.get() : address(0);
+
+        _;
+
+        if (remainingGasTo.value != 0 && remainingGasTo != address(this)) {
+            remainingGasTo.transfer({
+                    value: 0,
+                    flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS,
+                    bounce: false
+            });
+        }
+    }
+}

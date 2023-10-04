@@ -13,7 +13,6 @@ interface IMailRoot is IVersionedCode {
 
     event MailCreated(
         IMailState.MailUser[] receivers,
-        bytes encryptedMail,
         bytes senderMeta,
         bytes[] receiverMeta,
         uint16 metaVersion,

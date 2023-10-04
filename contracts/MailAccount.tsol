@@ -2,7 +2,7 @@ pragma ever-solidity ^0.62.0;
 
 import "@broxus/ever-contracts/contracts/upgrade/abstract/Version.tsol";
 import "./MailBox.tsol";
-import "./DexPlatform.tsol";
+import "./Platform.tsol";
 
 import "./interfaces/IMailAccount.tsol";
 import "./interfaces/IMailBox.tsol";
@@ -16,14 +16,14 @@ import "./structures/IVersionedCode.tsol";
 import "./structures/IMailState.tsol";
 
 
-contract MailAccount is Version, IMailAccount, IVersionedCode {
+contract MailAccount is Version, IMailAccount {
     TvmCell platformCode;
 
     address root;
     address user;
     uint pubkey;
 
-    VersionedCode mailBoxCode;
+    IVersionedCode.VersionedCode mailBoxCode;
 
     uint128 inMailsNum = 0;
     uint128 outMailsNum = 0;
@@ -93,18 +93,18 @@ contract MailAccount is Version, IMailAccount, IVersionedCode {
     }
 
     function _getMailBoxAddress(uint128 _nonce, IMailState.MailBoxType _type) private view returns (address) {
-        return DexPlatformUtils.expectedMailBox(address(this), platformCode, _nonce, _type);
+        return PlatformUtils.expectedMailBox(address(this), platformCode, _nonce, _type);
     }
 
     function _deployMailBox(uint128 _nonce, IMailState.MailBoxType _type) internal view returns (address) {
         TvmCell empty;
 
-        return new DexPlatform{
-            stateInit: DexPlatformUtils.buildInitData(
+        return new Platform{
+            stateInit: PlatformUtils.buildInitData(
             address(this),
             platformCode,
-            DexPlatformTypes.MailBox,
-            DexPlatformUtils.buildMailBoxParams(_nonce, _type)
+            PlatformTypes.MailBox,
+            PlatformUtils.buildMailBoxParams(_nonce, _type)
         ),
             value: Gas.MAIL_BOX_DEPLOY_VALUE,
             flag: MsgFlag.SENDER_PAYS_FEES
@@ -208,7 +208,7 @@ contract MailAccount is Version, IMailAccount, IVersionedCode {
             uint,
 
             TvmCell,
-            VersionedCode,
+            IVersionedCode.VersionedCode,
 
             uint128,
             uint128

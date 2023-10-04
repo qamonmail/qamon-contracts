@@ -1,11 +1,11 @@
 pragma ever-solidity ^0.62.0;
 
-import "./DexPlatformTypes.tsol";
-import "../DexPlatform.tsol";
+import "./PlatformTypes.tsol";
+import "../Platform.tsol";
 
 import "../structures/IMailState.tsol";
 
-library DexPlatformUtils {
+library PlatformUtils {
     function buildInitData(
         address _root,
         TvmCell _platformCode,
@@ -13,7 +13,7 @@ library DexPlatformUtils {
         TvmCell _params
     ) public returns (TvmCell) {
         return tvm.buildStateInit({
-            contr: DexPlatform,
+            contr: Platform,
             varInit: {
                 root: _root,
                 typeId: _typeId,
@@ -46,7 +46,7 @@ library DexPlatformUtils {
         TvmCell stateInit = buildInitData(
             _root,
             _platformCode,
-            DexPlatformTypes.MailAccount,
+            PlatformTypes.MailAccount,
             buildMailAccountParams(_user)
         );
         return address(tvm.hash(stateInit));
@@ -61,7 +61,7 @@ library DexPlatformUtils {
         TvmCell stateInit = buildInitData(
             _root,
             _platformCode,
-            DexPlatformTypes.MailBox,
+            PlatformTypes.MailBox,
             buildMailBoxParams(_nonce, _boxType)
         );
         return address(tvm.hash(stateInit));

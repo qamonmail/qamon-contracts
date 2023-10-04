@@ -1,15 +1,12 @@
 pragma ever-solidity ^0.62.0;
 
-pragma AbiHeader time;
-pragma AbiHeader expire;
-
 import "./structures/IVersions.tsol";
 
 import "@broxus/ever-contracts/contracts/libraries/MsgFlag.tsol";
-import "./libraries/DexPlatformTypes.tsol";
-import "./libraries/DexPlatformUtils.tsol";
+import "./libraries/PlatformTypes.tsol";
+import "./libraries/PlatformUtils.tsol";
 
-contract DexPlatform {
+contract Platform {
 
     address static root;
     uint8 static typeId;
