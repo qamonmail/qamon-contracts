@@ -1,22 +1,23 @@
 pragma ever-solidity ^0.62.0;
 
-import "@broxus/ever-contracts/contracts/upgrade/abstract/Version.tsol";
 import "./MailBox.tsol";
 import "./Platform.tsol";
+import "./abstract/GasHandlers.tsol";
+import "@broxus/ever-contracts/contracts/upgrade/abstract/Version.tsol";
 
 import "./interfaces/IMailAccount.tsol";
 import "./interfaces/IMailBox.tsol";
 import "./interfaces/IMailRoot.tsol";
 
-import "./libraries/Gas.tsol";
 import "./libraries/Errors.tsol";
+import "./libraries/Gas.tsol";
 
-import "./structures/IVersions.tsol";
-import "./structures/IVersionedCode.tsol";
 import "./structures/IMailState.tsol";
+import "./structures/IVersionedCode.tsol";
+import "./structures/IVersions.tsol";
 
 
-contract MailAccount is Version, IMailAccount {
+contract MailAccount is Version, GasHandlers, IMailAccount {
     TvmCell platformCode;
 
     address root;
@@ -56,26 +57,43 @@ contract MailAccount is Version, IMailAccount {
         return { value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false }(root, user, pubkey, inMailsNum, outMailsNum);
     }
 
-    function saveInMailAddress(uint32 nonce, address mail, bytes meta, address sender, uint16 metaVersion) external override onlyRoot {
-        tvm.rawReserve(_reserve(), 0);
-
+    function saveInMailAddress(
+        address mail,
+        bytes meta,
+        address sender,
+        uint16 metaVersion,
+        IMailState.MailUser /* user */,
+        address remainingGasTo
+    )
+        external
+        override
+        onlyRoot
+        reserveAndRefund_(_reserve(), remainingGasTo)
+    {
         address box = getOrCreateMailBox(inMailsNum, IMailState.MailBoxType.Inbox);
         inMailsNum++;
 
         emit InMail(mail, meta, sender, metaVersion);
         IMailBox(box).saveMail{value: 0.015 ever, flag: MsgFlag.SENDER_PAYS_FEES}(mail, meta, sender, metaVersion);
-        IMailRoot(root).onMailSaved{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(nonce);
     }
 
-    function saveOutMailAddress(uint32 nonce, address mail, bytes meta, uint16 metaVersion) external override onlyRoot {
-        tvm.rawReserve(_reserve(), 0);
-
+    function saveOutMailAddress(
+        address mail,
+        bytes meta,
+        uint16 metaVersion,
+        IMailState.MailUser /* user */,
+        address remainingGasTo
+    )
+        external
+        override
+        onlyRoot
+        reserveAndRefund_(_reserve(), remainingGasTo)
+    {
         address box = getOrCreateMailBox(outMailsNum, IMailState.MailBoxType.Outbox);
         outMailsNum++;
 
         emit OutMail(mail, meta, metaVersion);
         IMailBox(box).saveMail{value: 0.015 ever, flag: MsgFlag.SENDER_PAYS_FEES}(mail, meta, user, metaVersion);
-        IMailRoot(root).onMailSaved{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(nonce);
     }
 
     function getOrCreateMailBox(uint128 mail_num, IMailState.MailBoxType _type) internal view returns (address) {

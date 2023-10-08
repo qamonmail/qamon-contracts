@@ -1,5 +1,6 @@
 pragma ever-solidity ^0.62.0;
 
+import "../structures/IGasValueStructure.tsol";
 import "@broxus/ever-contracts/contracts/libraries/MsgFlag.tsol";
 
 abstract contract GasHandlers {
@@ -16,10 +17,14 @@ abstract contract GasHandlers {
 
         if (remainingGasTo.value != 0 && remainingGasTo != address(this)) {
             remainingGasTo.transfer({
-                    value: 0,
-                    flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS,
-                    bounce: false
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS,
+                bounce: false
             });
         }
+    }
+
+    function _calcValue(IGasValueStructure.GasValue value) internal pure returns(uint128) {
+        return value.fixedValue + gasToValue(value.dynamicGas, address(this).wid);
     }
 }

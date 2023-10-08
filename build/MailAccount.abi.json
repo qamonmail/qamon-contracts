@@ -26,11 +26,12 @@
 		{
 			"name": "saveInMailAddress",
 			"inputs": [
-				{"name":"nonce","type":"uint32"},
 				{"name":"mail","type":"address"},
 				{"name":"meta","type":"bytes"},
 				{"name":"sender","type":"address"},
-				{"name":"metaVersion","type":"uint16"}
+				{"name":"metaVersion","type":"uint16"},
+				{"components":[{"name":"addr","type":"address"},{"name":"pubkey","type":"uint256"}],"name":"value4","type":"tuple"},
+				{"name":"remainingGasTo","type":"address"}
 			],
 			"outputs": [
 			]
@@ -38,10 +39,11 @@
 		{
 			"name": "saveOutMailAddress",
 			"inputs": [
-				{"name":"nonce","type":"uint32"},
 				{"name":"mail","type":"address"},
 				{"name":"meta","type":"bytes"},
-				{"name":"metaVersion","type":"uint16"}
+				{"name":"metaVersion","type":"uint16"},
+				{"components":[{"name":"addr","type":"address"},{"name":"pubkey","type":"uint256"}],"name":"value3","type":"tuple"},
+				{"name":"remainingGasTo","type":"address"}
 			],
 			"outputs": [
 			]

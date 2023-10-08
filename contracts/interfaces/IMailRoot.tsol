@@ -27,8 +27,6 @@ interface IMailRoot is IVersionedCode {
 
     function setAccountCode(TvmCell _code) external;
 
-    function onMailSaved(uint32 nonce) external;
-
     function upgradeMailAccounts(
         address[] _accounts,
         uint32 _offset,

@@ -7,15 +7,6 @@ interface IMailState{
         uint256 pubkey;
     }
 
-    struct PendingMail {
-        MailUser user;
-        address mail;
-        bytes meta;
-        address sender;
-        uint16 metaVersion;
-        address send_gas_to;
-    }
-
     enum MailBoxType {
         Inbox,
         Outbox

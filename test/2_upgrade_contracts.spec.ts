@@ -5,16 +5,16 @@ import {deployUser} from "./utils";
 import {Account} from 'locklift/everscale-client';
 
 describe("upgrade contracts", () => {
-  let user1: Account;
-  let user2: Account;
-
-  let acc1: Contract<MailAccountAbi>
+  let owner: Account;
+  let users: Account[] = [];
 
   let mail_root: Contract<MailRootAbi>;
 
   before(async () => {
-    user1 = await deployUser(10);
-    user2 = await deployUser(10);
+    owner = await deployUser(150);
+    for (let i = 0; i < 75; i++) {
+      users.push(await deployUser(10));
+    }
 
     const signer = await locklift.keystore.getSigner('0');
 
@@ -29,7 +29,7 @@ describe("upgrade contracts", () => {
         _randomNonce: getRandomNonce(),
       },
       constructorParams: {
-        owner_: user1.address,
+        owner_: owner.address,
         platformCode_: Platform.code,
         mailCode_: Mail.code,
         mailBoxCode_: MailBox.code,
@@ -40,22 +40,20 @@ describe("upgrade contracts", () => {
     }));
     mail_root = _root;
 
-    const acc1_addr = await mail_root.methods.getMailAccountAddress({answerId: 0, user: {addr: user1.address, pubkey: 0}}).call().then(a => a.value0);
-    const acc2_addr = await mail_root.methods.getMailAccountAddress({answerId: 0, user: {addr: user2.address, pubkey: 0}}).call().then(a => a.value0);
-
-    await locklift.tracing.trace(
-      mail_root.methods.sendMails({
-        receivers: [{addr: user2.address, pubkey: 0}],
-        encryptedMail: '01',
-        metaVersion: 1,
-        senderMeta: '0x01',
-        receiverMeta: ['0x02'],
-        send_gas_to: user1.address
-      }).send({from: user1.address, amount: toNano(1.5)}),
-      {allowedCodes: {contracts: {[acc1_addr.toString()]: {compute: [null]}, [acc2_addr.toString()]: {compute: [null]}}}}
-    );
-
-    acc1 = await locklift.factory.getDeployedContract('MailAccount', acc1_addr);
+    for (let i = 0; i < users.length; i += 10) {
+      await locklift.transactions.waitFinalized(
+        mail_root.methods.sendMails({
+          receivers: users.slice(i, i + 10).map((user) => {
+            return { addr: user.address, pubkey: 0 }
+          }),
+          encryptedMail: '01',
+          metaVersion: 1,
+          senderMeta: '0x01',
+          receiverMeta: new Array(Math.min(10, users.length - i)).fill('0x02'),
+          send_gas_to: owner.address
+        }).send({ from: owner.address, amount: toNano(10) })
+      );
+    }
   });
 
   it("upgrade MailRoot", async () => {
@@ -68,10 +66,11 @@ describe("upgrade contracts", () => {
         .upgrade({
           _code: mailRootNew.code,
           _version: null,
-          _remainingGasTo: null,
+          _remainingGasTo: owner.address,
         })
-        .send({ from: user1.address, amount: toNano(2) }),
+        .send({ from: owner.address, amount: toNano(2) }),
     );
+    await traceTree?.beautyPrint();
 
     const newRoot = locklift.factory.getDeployedContract(
       "MailRoot",
@@ -94,7 +93,7 @@ describe("upgrade contracts", () => {
         .setAccountCode({
           _code: NewMailAccount.code,
         })
-        .send({ from: user1.address, amount: toNano(0.2) }),
+        .send({ from: owner.address, amount: toNano(0.2) }),
     );
 
     const newVersionCodeInRoot = (
@@ -109,19 +108,30 @@ describe("upgrade contracts", () => {
   });
 
   it("upgrade MailAccount", async () => {
+    let mailAccounts = await Promise.all(
+      users.map(user => mail_root.methods
+        .getMailAccountAddress({ answerId: 0, user: {addr: user.address, pubkey: 0 } })
+        .call()
+        .then(a => a.value0))
+    )
+
     const { traceTree } = await locklift.tracing.trace(
       mail_root.methods
-        .upgradeMailAccounts({ _accounts: [acc1.address], _offset: 0, _remainingGasTo: user1.address })
-        .send({ from: user1.address, amount: toNano(0.5) }),
+        .upgradeMailAccounts({ _accounts: mailAccounts, _offset: 0, _remainingGasTo: owner.address })
+        .send({ from: owner.address, amount: toNano(5) }),
     );
+    // await traceTree?.beautyPrint();
 
-    const newAccount = await locklift.factory.getDeployedContract(
-      "MailAccount",
-      acc1.address,
-    );
+    // mailAccounts.forEach(accountAddress => {
+    //   console.log(accountAddress);
+    //   expect(traceTree)
+    //     .to.emit("VersionChanged", accountAddress)
+    //     .count(1)
+    //     .withNamedArgs({ previous: "1", current: "2" });
+    // })
 
     expect(traceTree)
-      .to.emit("VersionChanged", newAccount)
+      .to.emit("VersionChanged", mailAccounts[users.length - 1])
       .count(1)
       .withNamedArgs({ previous: "1", current: "2" });
   });

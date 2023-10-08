@@ -3,7 +3,6 @@ import {Account} from 'locklift/everscale-client';
 import {MailAccountAbi, MailRootAbi} from "../build/factorySource";
 
 const logger = require("mocha-logger");
-const {expect} = require("chai");
 
 
 
@@ -18,15 +17,11 @@ export const deployUser = async function (initial_balance = 100): Promise<Accoun
     const signer = await locklift.keystore.getSigner('0');
 
     const {account: _user, tx} = await locklift.factory.accounts.addNewAccount({
-        type: WalletTypes.MsigAccount,
-        contract: "Wallet",
+        type: WalletTypes.EverWallet,
         //Value which will send to the new account from a giver
         value: toNano(initial_balance),
         publicKey: signer?.publicKey as string,
-        initParams: {
-            _randomNonce: getRandomNonce()
-        },
-        constructorParams: {}
+        nonce: getRandomNonce()
     });
 
     logger.log(`User address: ${_user.address.toString()}`);

@@ -46,7 +46,7 @@ contract MailBox is Version, IMailBox {
     }
 
     function saveMail(address mail, bytes meta, address sender, uint16 metaVersion) external override {
-        require (msg.sender == root, Errors.NOT_ROOT);
+        require (msg.sender == root, Errors.NOT_MAIL_ACC);
 
         mails.push(Mail(mail, meta, sender, metaVersion));
         mailsNum++;

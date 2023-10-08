@@ -36,10 +36,13 @@ contract MailRoot is
     VersionedCode _mailCode;
     uint32 public _mailCount = 0;
 
-    uint32 _mailNonce = 0;
-    mapping (uint32 => PendingMail) _pendingMails;
     uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
     uint128 constant FIXED_COMMISSION = 0.03 ever;
+
+    modifier onlyOwnerOrSelf() {
+        require(msg.sender == _getOwnerInternal() || msg.sender == address(this), Errors.NOT_OWNER);
+        _;
+    }
 
     constructor (
         address owner_,
@@ -115,6 +118,14 @@ contract MailRoot is
         override
         returns (uint128)
     {
+        return math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
+    }
+
+    function _getTargetBalanceWithFee()
+        internal
+        pure
+        returns (uint128)
+    {
         return math.max(address(this).balance - (msg.value - FIXED_COMMISSION), CONTRACT_MIN_BALANCE);
     }
 
@@ -157,18 +168,24 @@ contract MailRoot is
         emit MailCreated(receivers, senderMeta, receiverMeta, metaVersion, msg.sender, mail);
     }
 
-    function _saveOutMail(address mail, bytes meta, uint16 metaVersion, address send_gas_to) internal {
-        address sender_mail_account = getMailAccountAddress(MailUser(msg.sender, 0));
-        _mailNonce += 1;
-        _pendingMails[_mailNonce] = PendingMail(MailUser(msg.sender, 0), mail, meta, msg.sender, metaVersion, send_gas_to);
-        IMailAccount(sender_mail_account).saveOutMailAddress{value: Gas.SAVE_MAIL_VALUE, flag: MsgFlag.SENDER_PAYS_FEES}(_mailNonce, mail, meta, metaVersion);
+    function _saveOutMail(MailUser user, address mail, bytes meta, uint16 metaVersion, address send_gas_to) internal view {
+        address sender_mail_account = PlatformUtils.expectedMailAccount(address(this), _platformCode, user);
+
+        IMailAccount(sender_mail_account)
+            .saveOutMailAddress {
+                value: Gas.SAVE_MAIL_VALUE,
+                flag: MsgFlag.SENDER_PAYS_FEES
+            }(mail, meta, metaVersion, user, send_gas_to);
     }
 
-    function _saveInMail(MailUser user, address mail, bytes meta, uint16 metaVersion, address send_gas_to) internal {
-        address receiver_mail_account = getMailAccountAddress(user);
-        _mailNonce += 1;
-        _pendingMails[_mailNonce] = PendingMail(user, mail, meta, msg.sender, metaVersion, send_gas_to);
-        IMailAccount(receiver_mail_account).saveInMailAddress{value: Gas.SAVE_MAIL_VALUE, flag: MsgFlag.SENDER_PAYS_FEES}(_mailNonce, mail, meta, msg.sender, metaVersion);
+    function _saveInMail(MailUser user, address mail, bytes meta, uint16 metaVersion, address send_gas_to) internal view {
+        address receiver_mail_account = PlatformUtils.expectedMailAccount(address(this), _platformCode, user);
+
+        IMailAccount(receiver_mail_account)
+            .saveInMailAddress {
+                value: Gas.SAVE_MAIL_VALUE,
+                flag: MsgFlag.SENDER_PAYS_FEES
+            }(mail, meta, msg.sender, metaVersion, user, send_gas_to);
     }
 
     function sendMails(
@@ -178,12 +195,12 @@ contract MailRoot is
         bytes[] receiverMeta,
         uint16 metaVersion,
         address send_gas_to
-    ) external reserveAndRefund_(_getTargetBalanceInternal(), send_gas_to) {
+    ) external reserveAndRefund_(_getTargetBalanceWithFee(), send_gas_to) {
         require (receivers.length == receiverMeta.length, Errors.BAD_INPUT);
         require (msg.value >= Gas.MAIL_DEPLOY_VALUE + FIXED_COMMISSION + Gas.SAVE_MAIL_VALUE * receivers.length + 0.01 ever * receivers.length, Errors.LOW_MSG_VALUE);
 
         address mail = _deployMail(receivers, encryptedMail, senderMeta, receiverMeta, metaVersion);
-        _saveOutMail(mail, senderMeta, metaVersion, send_gas_to);
+        _saveOutMail(MailUser(msg.sender, 0), mail, senderMeta, metaVersion, send_gas_to);
 
         for (uint i = 0; i < receivers.length; i++) {
             MailUser _user = receivers[i];
@@ -193,21 +210,7 @@ contract MailRoot is
         }
     }
 
-    function onMailSaved(uint32 nonce)
-        external
-        override
-        reserve(_getTargetBalanceInternal())
-    {
-        PendingMail _mail = _pendingMails[nonce];
-        address mail_acc = getMailAccountAddress(_mail.user);
-
-        require (msg.sender == mail_acc, Errors.NOT_MAIL_ACC);
-
-        delete _pendingMails[nonce];
-        _mail.send_gas_to.transfer({ value: 0, bounce: false, flag: MsgFlag.ALL_NOT_RESERVED });
-    }
-
-    function getMailAccountAddress(MailUser user) public view responsible returns (address) {
+    function getMailAccountAddress(MailUser user) external view responsible returns (address) {
         return {
             value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false
         } PlatformUtils.expectedMailAccount(address(this), _platformCode, user);
@@ -258,27 +261,43 @@ contract MailRoot is
     onBounce(TvmSlice slice) external view {
         tvm.accept();
 
+        // full body on bounced
+        slice = slice.loadRefAsSlice();
+
         uint32 functionId = slice.decode(uint32);
         // if processing failed - contract was not deployed. Deploy and try again
         if (functionId == tvm.functionId(IMailAccount.saveOutMailAddress)) {
             tvm.rawReserve(_getTargetBalanceInternal(), 0);
 
-            uint32 _nonce = slice.decode(uint32);
-            PendingMail _mail = _pendingMails[_nonce];
-            address mail_acc = _deployMailAccount(_mail.user, _mail.send_gas_to);
+            (
+                address mail,
+                bytes meta,
+                uint16 metaVersion,
+                MailUser user,
+                address remainingGasTo
+            ) = slice.decodeFunctionParams(IMailAccount.saveOutMailAddress);
+
+            address mail_acc = _deployMailAccount(user, remainingGasTo);
 
             IMailAccount(mail_acc).saveOutMailAddress{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(
-                _nonce, _mail.mail, _mail.meta, _mail.metaVersion
+                mail, meta, metaVersion, user, remainingGasTo
             );
         } else if (functionId == tvm.functionId(IMailAccount.saveInMailAddress)) {
             tvm.rawReserve(_getTargetBalanceInternal(), 0);
 
-            uint32 _nonce = slice.decode(uint32);
-            PendingMail _mail = _pendingMails[_nonce];
-            address mail_acc = _deployMailAccount(_mail.user, _mail.send_gas_to);
+            (
+                address mail,
+                bytes meta,
+                address sender,
+                uint16 metaVersion,
+                IMailState.MailUser user,
+                address remainingGasTo
+            ) = slice.decodeFunctionParams(IMailAccount.saveInMailAddress);
+
+            address mail_acc = _deployMailAccount(user, remainingGasTo);
 
             IMailAccount(mail_acc).saveInMailAddress{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(
-                _nonce, _mail.mail, _mail.meta, _mail.sender, _mail.metaVersion
+                mail, meta, sender, metaVersion, user, remainingGasTo
             );
         }
     }
@@ -291,29 +310,26 @@ contract MailRoot is
         external
         view
         override
-        onlyOwner
-        reserve(_getTargetBalanceInternal())
+        onlyOwnerOrSelf
+        reserveAndRefund_(_getTargetBalanceInternal(), _remainingGasTo)
     {
         uint length = _accounts.length;
-        uint takeUntil = math.min(_offset + 5, length);
+        uint takeUntil = math.min(_offset + 50, length);
 
-        for (uint i = _offset; i < takeUntil; i++) {
-            _upgradeAccountInternal(_accounts[i], _remainingGasTo);
-        }
+        if (_accounts.length > 0) { // todo add calcValue(gas) check
 
-        if (takeUntil < length) {
-            IMailRoot(address(this))
-                .upgradeMailAccounts{
-                    value: 0,
-                    flag: MsgFlag.ALL_NOT_RESERVED,
-                    bounce: false
-            }(_accounts, uint32(takeUntil), _remainingGasTo);
-        } else {
-            _remainingGasTo.transfer({
-                value: 0,
-                flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS,
-                bounce: false
-            });
+            for (uint i = _offset; i < takeUntil; i++) {
+                _upgradeAccountInternal(_accounts[i], _remainingGasTo);
+            }
+
+            if (takeUntil < length) {
+                IMailRoot(address(this))
+                    .upgradeMailAccounts{
+                        value: 0,
+                        flag: MsgFlag.ALL_NOT_RESERVED,
+                        bounce: false
+                }(_accounts, uint32(takeUntil), _remainingGasTo);
+            }
         }
     }
 
@@ -325,7 +341,7 @@ contract MailRoot is
 
         IMailAccount(_account)
             .upgrade{
-                value: 0.2 ever,
+                value: 0.02 ever,
                 flag: MsgFlag.SENDER_PAYS_FEES,
                 bounce: false
         }(
@@ -343,8 +359,10 @@ contract MailRoot is
         external
         override
         onlyOwner
-        reserveAndRefund_(_getTargetBalanceInternal(), _remainingGasTo)
+        reserve(_getTargetBalanceInternal())
     {
+        require(msg.value >= Gas.MAIL_ROOT_UPGRADE, Errors.LOW_MSG_VALUE);
+
         uint32 currentVersion = _getCurrentVersionInternal();
         IVersions.Versions versions = IVersions.Versions({
             current: _version.hasValue() ? _version.get() : currentVersion + 1,
@@ -353,15 +371,15 @@ contract MailRoot is
 
         TvmCell data = abi.encode(
             versions,
+            _remainingGasTo.hasValue() ? _remainingGasTo.get() : address(0),
+
+            _platformCode,
 
             _accountCode,
             _mailBoxCode,
             _mailCode,
             _mailCount,
-            _getOwnerInternal(),
-
-            _mailNonce,
-            _pendingMails
+            _getOwnerInternal()
         );
 
         tvm.setcode(_code);
@@ -375,31 +393,40 @@ contract MailRoot is
 
         address owner;
         IVersions.Versions versions;
+        address remainingGasTo;
         (
             versions,
+            remainingGasTo,
+
+            _platformCode,
 
             _accountCode,
             _mailBoxCode,
             _mailCode,
             _mailCount,
-            owner,
-
-            _mailNonce,
-            _pendingMails
+            owner
         ) = abi.decode(_data, (
             IVersions.Versions,
-
-            VersionedCode,
-            VersionedCode,
-            VersionedCode,
-            uint32,
             address,
 
+            TvmCell,
+
+            VersionedCode,
+            VersionedCode,
+            VersionedCode,
             uint32,
-            mapping(uint32 => PendingMail)
+            address
         ));
 
         _setOwnerSilent(owner);
         _setCurrentVersionInternal(versions.current, versions.previous);
+
+        if (remainingGasTo.value != 0 && remainingGasTo != address(this)) {
+            remainingGasTo.transfer({
+                value: 0,
+                flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS,
+                bounce: false
+            });
+        }
     }
 }
