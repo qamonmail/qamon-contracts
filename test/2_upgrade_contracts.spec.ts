@@ -70,7 +70,7 @@ describe("upgrade contracts", () => {
         })
         .send({ from: owner.address, amount: toNano(2) }),
     );
-    await traceTree?.beautyPrint();
+    // await traceTree?.beautyPrint();
 
     const newRoot = locklift.factory.getDeployedContract(
       "MailRoot",

@@ -74,7 +74,10 @@ contract MailAccount is Version, GasHandlers, IMailAccount {
         inMailsNum++;
 
         emit InMail(mail, meta, sender, metaVersion);
-        IMailBox(box).saveMail{value: 0.015 ever, flag: MsgFlag.SENDER_PAYS_FEES}(mail, meta, sender, metaVersion);
+        IMailBox(box).saveMail{
+            value: Gas.SAVE_MAIL_MAILBOX_VALUE,
+            flag: MsgFlag.SENDER_PAYS_FEES
+        }(mail, meta, sender, metaVersion);
     }
 
     function saveOutMailAddress(
@@ -93,7 +96,10 @@ contract MailAccount is Version, GasHandlers, IMailAccount {
         outMailsNum++;
 
         emit OutMail(mail, meta, metaVersion);
-        IMailBox(box).saveMail{value: 0.015 ever, flag: MsgFlag.SENDER_PAYS_FEES}(mail, meta, user, metaVersion);
+        IMailBox(box).saveMail{
+            value: Gas.SAVE_MAIL_MAILBOX_VALUE,
+            flag: MsgFlag.SENDER_PAYS_FEES
+        }(mail, meta, user, metaVersion);
     }
 
     function getOrCreateMailBox(uint128 mail_num, IMailState.MailBoxType _type) internal view returns (address) {

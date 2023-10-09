@@ -2,10 +2,18 @@ pragma ever-solidity ^0.62.0;
 
 
 library Gas {
+    uint128 constant ROOT_COMPENSATION = 0.001 ever;
+    uint128 constant ACCOUNT_COMPENSATION = 0.001 ever;
+
     uint128 constant MAIL_BOX_DEPLOY_VALUE = 0.04 ever;
     uint128 constant ACCOUNT_DEPLOY_VALUE = 0.12 ever;
-    uint128 constant SAVE_MAIL_VALUE = 0.3 ever;
     uint128 constant MAIL_DEPLOY_VALUE = 0.1 ever;
 
+    uint128 constant SEND_MAILS_VALUE = 0.06 ever;
+    uint128 constant SAVE_MAIL_ACCOUNT_VALUE = 0.3 ever;
+    uint128 constant SAVE_MAIL_MAILBOX_VALUE = 0.015 ever;
+
     uint128 constant MAIL_ROOT_UPGRADE = 0.1 ever;
+    uint128 constant MAIL_ACCOUNT_UPGRADE = 0.025 ever;
+    uint128 constant HANDLE_ACCOUNT_UPGRADE = 0.04 ever;
 }

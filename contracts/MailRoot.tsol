@@ -173,7 +173,7 @@ contract MailRoot is
 
         IMailAccount(sender_mail_account)
             .saveOutMailAddress {
-                value: Gas.SAVE_MAIL_VALUE,
+                value: Gas.SAVE_MAIL_ACCOUNT_VALUE,
                 flag: MsgFlag.SENDER_PAYS_FEES
             }(mail, meta, metaVersion, user, send_gas_to);
     }
@@ -183,7 +183,7 @@ contract MailRoot is
 
         IMailAccount(receiver_mail_account)
             .saveInMailAddress {
-                value: Gas.SAVE_MAIL_VALUE,
+                value: Gas.SAVE_MAIL_ACCOUNT_VALUE,
                 flag: MsgFlag.SENDER_PAYS_FEES
             }(mail, meta, msg.sender, metaVersion, user, send_gas_to);
     }
@@ -197,7 +197,7 @@ contract MailRoot is
         address send_gas_to
     ) external reserveAndRefund_(_getTargetBalanceWithFee(), send_gas_to) {
         require (receivers.length == receiverMeta.length, Errors.BAD_INPUT);
-        require (msg.value >= Gas.MAIL_DEPLOY_VALUE + FIXED_COMMISSION + Gas.SAVE_MAIL_VALUE * receivers.length + 0.01 ever * receivers.length, Errors.LOW_MSG_VALUE);
+        require (msg.value >= Gas.MAIL_DEPLOY_VALUE + FIXED_COMMISSION + Gas.SAVE_MAIL_ACCOUNT_VALUE * receivers.length + Gas.SEND_MAILS_VALUE, Errors.LOW_MSG_VALUE);
 
         address mail = _deployMail(receivers, encryptedMail, senderMeta, receiverMeta, metaVersion);
         _saveOutMail(MailUser(msg.sender, 0), mail, senderMeta, metaVersion, send_gas_to);
@@ -341,7 +341,7 @@ contract MailRoot is
 
         IMailAccount(_account)
             .upgrade{
-                value: 0.02 ever,
+                value: Gas.MAIL_ACCOUNT_UPGRADE,
                 flag: MsgFlag.SENDER_PAYS_FEES,
                 bounce: false
         }(

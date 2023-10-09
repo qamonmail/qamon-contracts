@@ -49,7 +49,7 @@ describe("Test mail contracts", async function () {
             }));
             mail_root = _root;
 
-            console.log(_root.address);
+            // console.log(_root.address);
         });
     });
 
@@ -73,7 +73,7 @@ describe("Test mail contracts", async function () {
                 }).send({from: user1.address, amount: toNano(1.5)}),
                 {allowedCodes: {contracts: {[acc1_addr.value0.toString()]: {compute: [null]}, [acc2_addr.value0.toString()]: {compute: [null]}}}}
             );
-            await traceTree?.beautyPrint();
+            // await traceTree?.beautyPrint();
             acc1 = await locklift.factory.getDeployedContract('MailAccount', acc1_addr.value0);
             acc2 = await locklift.factory.getDeployedContract('MailAccount', acc2_addr.value0);
 
@@ -128,9 +128,9 @@ describe("Test mail contracts", async function () {
                 receiverMeta: ['0x03'],
                 send_gas_to: user1.address
             }).send({from: user1.address, amount: toNano(1.5)}));
-            await traceTree1?.beautyPrint();
+            // await traceTree1?.beautyPrint();
 
-            console.log(traceTree1?.getBalanceDiff(user1.address));
+            // console.log(traceTree1?.getBalanceDiff(user1.address));
 
             const acc1_details_1 = await acc1.methods.getDetails({answerId: 0}).call();
             expect(acc1_details_1._outMailsNum).to.be.eq('2');
