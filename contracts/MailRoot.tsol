@@ -297,11 +297,24 @@ contract MailRoot is
                 address remainingGasTo
             ) = slice.decodeFunctionParams(IMailAccount.saveOutMailAddress);
 
-            address mail_acc = _deployMailAccount(user, remainingGasTo);
+            if (msg.value > Gas.ACCOUNT_DEPLOY_VALUE + _calcValue(Gas.getSaveMailAccountGas(false))) {
 
-            IMailAccount(mail_acc).saveOutMailAddress{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(
-                mail, meta, metaVersion, user, remainingGasTo
-            );
+                address mail_acc = _deployMailAccount(user, remainingGasTo);
+
+                IMailAccount(mail_acc).saveOutMailAddress{value: 0, flag: MsgFlag.ALL_NOT_RESERVED} (
+                    mail, meta, metaVersion, user, remainingGasTo
+                );
+            } else {
+                emit AccountDeployCanceled(user);
+
+                if (remainingGasTo.value != 0 && remainingGasTo != address(this)) {
+                    remainingGasTo.transfer({
+                        value: 0,
+                        flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.DESTROY_IF_ZERO,
+                        bounce: false
+                    });
+                }
+            }
         } else if (functionId == tvm.functionId(IMailAccount.saveInMailAddress)) {
             tvm.rawReserve(_getTargetBalanceInternal(), 0);
 
@@ -314,11 +327,23 @@ contract MailRoot is
                 address remainingGasTo
             ) = slice.decodeFunctionParams(IMailAccount.saveInMailAddress);
 
-            address mail_acc = _deployMailAccount(user, remainingGasTo);
+            if (msg.value > Gas.ACCOUNT_DEPLOY_VALUE + _calcValue(Gas.getSaveMailAccountGas(false))) {
+                address mail_acc = _deployMailAccount(user, remainingGasTo);
 
-            IMailAccount(mail_acc).saveInMailAddress{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(
-                mail, meta, sender, metaVersion, user, remainingGasTo
-            );
+                IMailAccount(mail_acc).saveInMailAddress{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(
+                    mail, meta, sender, metaVersion, user, remainingGasTo
+                );
+            } else {
+                emit AccountDeployCanceled(user);
+
+                if (remainingGasTo.value != 0 && remainingGasTo != address(this)) {
+                    remainingGasTo.transfer({
+                        value: 0,
+                        flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.DESTROY_IF_ZERO,
+                        bounce: false
+                    });
+                }
+            }
         }
     }
 

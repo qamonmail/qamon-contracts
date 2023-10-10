@@ -234,6 +234,14 @@
 			]
 		},
 		{
+			"name": "AccountDeployCanceled",
+			"inputs": [
+				{"components":[{"name":"addr","type":"address"},{"name":"pubkey","type":"uint256"}],"name":"user","type":"tuple"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "VersionChanged",
 			"inputs": [
 				{"name":"current","type":"uint32"},

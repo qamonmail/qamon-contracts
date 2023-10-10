@@ -31,9 +31,6 @@ contract MailAccount is Version, GasHandlers, IMailAccount {
 
     uint32 constant MAX_MAILS_PER_BOX = 1000;
 
-    event InMail(address mail, bytes meta, address sender, uint16 metaVersion);
-    event OutMail(address mail, bytes meta, uint16 metaVersion);
-
     // Prevent direct deploy
     constructor() public { revert(); }
 
@@ -72,7 +69,6 @@ contract MailAccount is Version, GasHandlers, IMailAccount {
         address box = getOrCreateMailBox(inMailsNum, IMailState.MailBoxType.Inbox);
         inMailsNum++;
 
-        emit InMail(mail, meta, sender, metaVersion);
         IMailBox(box).saveMail{
             value: Gas.SAVE_MAIL_MAILBOX_VALUE,
             flag: MsgFlag.SENDER_PAYS_FEES
@@ -94,7 +90,6 @@ contract MailAccount is Version, GasHandlers, IMailAccount {
         address box = getOrCreateMailBox(outMailsNum, IMailState.MailBoxType.Outbox);
         outMailsNum++;
 
-        emit OutMail(mail, meta, metaVersion);
         IMailBox(box).saveMail{
             value: Gas.SAVE_MAIL_MAILBOX_VALUE,
             flag: MsgFlag.SENDER_PAYS_FEES

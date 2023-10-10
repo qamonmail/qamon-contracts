@@ -22,6 +22,8 @@ interface IMailRoot is IVersionedCode {
 
     event UpgradeAccount(address account, uint32 accountVersion);
 
+    event AccountDeployCanceled(IMailState.MailUser user);
+
 
     function getAccountCode() external view responsible returns (VersionedCode);
 
