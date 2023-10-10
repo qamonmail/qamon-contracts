@@ -36,9 +36,6 @@ contract MailRoot is
     VersionedCode _mailCode;
     uint32 public _mailCount = 0;
 
-    uint128 constant CONTRACT_MIN_BALANCE = 1 ever;
-    uint128 constant FIXED_COMMISSION = 0.03 ever;
-
     modifier onlyOwnerOrSelf() {
         require(msg.sender == _getOwnerInternal() || msg.sender == address(this), Errors.NOT_OWNER);
         _;
@@ -118,7 +115,7 @@ contract MailRoot is
         override
         returns (uint128)
     {
-        return math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
+        return math.max(address(this).balance - msg.value, Gas.ROOT_MIN_BALANCE);
     }
 
     function _getTargetBalanceWithFee()
@@ -126,7 +123,7 @@ contract MailRoot is
         pure
         returns (uint128)
     {
-        return math.max(address(this).balance - (msg.value - FIXED_COMMISSION), CONTRACT_MIN_BALANCE);
+        return math.max(address(this).balance - (msg.value - Gas.ROOT_FIXED_COMMISSION), Gas.ROOT_MIN_BALANCE);
     }
 
     function getAccountCode()
@@ -168,24 +165,46 @@ contract MailRoot is
         emit MailCreated(receivers, senderMeta, receiverMeta, metaVersion, msg.sender, mail);
     }
 
-    function _saveOutMail(MailUser user, address mail, bytes meta, uint16 metaVersion, address send_gas_to) internal view {
+    function _saveOutMail(
+        MailUser user,
+        address mail,
+        bytes meta,
+        uint16 metaVersion,
+        bool deployAccount,
+        address send_gas_to
+    ) internal view {
         address sender_mail_account = PlatformUtils.expectedMailAccount(address(this), _platformCode, user);
 
         IMailAccount(sender_mail_account)
             .saveOutMailAddress {
-                value: Gas.SAVE_MAIL_ACCOUNT_VALUE,
+                value: _calcValue(Gas.getSaveMailAccountGas(deployAccount)),
                 flag: MsgFlag.SENDER_PAYS_FEES
             }(mail, meta, metaVersion, user, send_gas_to);
     }
 
-    function _saveInMail(MailUser user, address mail, bytes meta, uint16 metaVersion, address send_gas_to) internal view {
+    function _saveInMail(
+        MailUser user,
+        address mail,
+        bytes meta,
+        uint16 metaVersion,
+        bool deployAccount,
+        address send_gas_to
+    ) internal view {
         address receiver_mail_account = PlatformUtils.expectedMailAccount(address(this), _platformCode, user);
 
         IMailAccount(receiver_mail_account)
             .saveInMailAddress {
-                value: Gas.SAVE_MAIL_ACCOUNT_VALUE,
+                value: _calcValue(Gas.getSaveMailAccountGas(deployAccount)),
                 flag: MsgFlag.SENDER_PAYS_FEES
             }(mail, meta, msg.sender, metaVersion, user, send_gas_to);
+    }
+
+    function getSendMailsGas(uint128 _receiversNumber, bool _deployAccount) public pure responsible returns (IGasValueStructure.GasValue) {
+        return {
+            value: 0,
+            flag: MsgFlag.REMAINING_GAS,
+            bounce: false
+        } Gas.getSendMailsGas(_receiversNumber, _deployAccount);
     }
 
     function sendMails(
@@ -194,19 +213,20 @@ contract MailRoot is
         bytes senderMeta,
         bytes[] receiverMeta,
         uint16 metaVersion,
+        bool deployAccount,
         address send_gas_to
     ) external reserveAndRefund_(_getTargetBalanceWithFee(), send_gas_to) {
         require (receivers.length == receiverMeta.length, Errors.BAD_INPUT);
-        require (msg.value >= Gas.MAIL_DEPLOY_VALUE + FIXED_COMMISSION + Gas.SAVE_MAIL_ACCOUNT_VALUE * receivers.length + Gas.SEND_MAILS_VALUE, Errors.LOW_MSG_VALUE);
+        require (msg.value >= _calcValue(Gas.getSendMailsGas(uint128(receivers.length), deployAccount)), Errors.LOW_MSG_VALUE);
 
         address mail = _deployMail(receivers, encryptedMail, senderMeta, receiverMeta, metaVersion);
-        _saveOutMail(MailUser(msg.sender, 0), mail, senderMeta, metaVersion, send_gas_to);
+        _saveOutMail(MailUser(msg.sender, 0), mail, senderMeta, metaVersion, deployAccount,send_gas_to);
 
         for (uint i = 0; i < receivers.length; i++) {
             MailUser _user = receivers[i];
             require (_user.pubkey == 0 || _user.addr == address.makeAddrStd(address(this).wid, 0), Errors.BAD_INPUT);
 
-            _saveInMail(_user, mail,receiverMeta[i], metaVersion, send_gas_to);
+            _saveInMail(_user, mail,receiverMeta[i], metaVersion, deployAccount,send_gas_to);
         }
     }
 
@@ -256,7 +276,7 @@ contract MailRoot is
         external
         view
         onlyOwner
-        reserveAndRefund_(CONTRACT_MIN_BALANCE, _getOwnerInternal()) {}
+        reserveAndRefund_(Gas.ROOT_MIN_BALANCE, _getOwnerInternal()) {}
 
     onBounce(TvmSlice slice) external view {
         tvm.accept();
@@ -302,6 +322,14 @@ contract MailRoot is
         }
     }
 
+    function getUpgradeMailAccountsGas(uint128 _accountsNumber) public pure responsible returns (IGasValueStructure.GasValue) {
+        return {
+            value: 0,
+            flag: MsgFlag.REMAINING_GAS,
+            bounce: false
+        } Gas.getUpdateMailAccountsGas(_accountsNumber);
+    }
+
     function upgradeMailAccounts(
         address[] _accounts,
         uint32 _offset,
@@ -316,7 +344,7 @@ contract MailRoot is
         uint length = _accounts.length;
         uint takeUntil = math.min(_offset + 50, length);
 
-        if (_accounts.length > 0) { // todo add calcValue(gas) check
+        if (_accounts.length > 0 && msg.value >= _calcValue(Gas.getUpdateMailAccountsGas(uint128(length - _offset)))) {
 
             for (uint i = _offset; i < takeUntil; i++) {
                 _upgradeAccountInternal(_accounts[i], _remainingGasTo);
@@ -341,7 +369,7 @@ contract MailRoot is
 
         IMailAccount(_account)
             .upgrade{
-                value: Gas.MAIL_ACCOUNT_UPGRADE,
+                value: _calcValue(Gas.getUpdateMailAccountGas()),
                 flag: MsgFlag.SENDER_PAYS_FEES,
                 bounce: false
         }(

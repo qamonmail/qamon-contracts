@@ -33,6 +33,17 @@
 			]
 		},
 		{
+			"name": "getSendMailsGas",
+			"inputs": [
+				{"name":"answerId","type":"uint32"},
+				{"name":"_receiversNumber","type":"uint128"},
+				{"name":"_deployAccount","type":"bool"}
+			],
+			"outputs": [
+				{"components":[{"name":"fixedValue","type":"uint128"},{"name":"dynamicGas","type":"uint128"}],"name":"value0","type":"tuple"}
+			]
+		},
+		{
 			"name": "sendMails",
 			"inputs": [
 				{"components":[{"name":"addr","type":"address"},{"name":"pubkey","type":"uint256"}],"name":"receivers","type":"tuple[]"},
@@ -40,6 +51,7 @@
 				{"name":"senderMeta","type":"bytes"},
 				{"name":"receiverMeta","type":"bytes[]"},
 				{"name":"metaVersion","type":"uint16"},
+				{"name":"deployAccount","type":"bool"},
 				{"name":"send_gas_to","type":"address"}
 			],
 			"outputs": [
@@ -70,6 +82,16 @@
 			"inputs": [
 			],
 			"outputs": [
+			]
+		},
+		{
+			"name": "getUpgradeMailAccountsGas",
+			"inputs": [
+				{"name":"answerId","type":"uint32"},
+				{"name":"_accountsNumber","type":"uint128"}
+			],
+			"outputs": [
+				{"components":[{"name":"fixedValue","type":"uint128"},{"name":"dynamicGas","type":"uint128"}],"name":"value0","type":"tuple"}
 			]
 		},
 		{

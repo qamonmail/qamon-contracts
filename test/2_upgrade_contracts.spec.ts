@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import {Contract, getRandomNonce, toNano} from "locklift";
 import {MailAccountAbi, MailRootAbi} from "../build/factorySource";
-import {deployUser} from "./utils";
+import { calcValue, deployUser } from "./utils";
 import {Account} from 'locklift/everscale-client';
 
 describe("upgrade contracts", () => {
@@ -41,7 +41,13 @@ describe("upgrade contracts", () => {
     mail_root = _root;
 
     for (let i = 0; i < users.length; i += 10) {
-      await locklift.transactions.waitFinalized(
+      let gas = await mail_root.methods.getSendMailsGas({
+        answerId: 0,
+        _receiversNumber: Math.min(10, users.length - i),
+        _deployAccount: true
+      }).call().then(a => a.value0);
+
+      const {traceTree} = await locklift.tracing.trace(
         mail_root.methods.sendMails({
           receivers: users.slice(i, i + 10).map((user) => {
             return { addr: user.address, pubkey: 0 }
@@ -50,9 +56,11 @@ describe("upgrade contracts", () => {
           metaVersion: 1,
           senderMeta: '0x01',
           receiverMeta: new Array(Math.min(10, users.length - i)).fill('0x02'),
+          deployAccount: true,
           send_gas_to: owner.address
-        }).send({ from: owner.address, amount: toNano(10) })
+        }).send({ from: owner.address, amount: calcValue(gas) }), {allowedCodes: {compute: [null]}}
       );
+      // await traceTree?.beautyPrint();
     }
   });
 
@@ -115,10 +123,11 @@ describe("upgrade contracts", () => {
         .then(a => a.value0))
     )
 
+    let gas = await mail_root.methods.getUpgradeMailAccountsGas({answerId: 0, _accountsNumber: mailAccounts.length}).call().then(a => a.value0);
     const { traceTree } = await locklift.tracing.trace(
       mail_root.methods
         .upgradeMailAccounts({ _accounts: mailAccounts, _offset: 0, _remainingGasTo: owner.address })
-        .send({ from: owner.address, amount: toNano(5) }),
+        .send({ from: owner.address, amount: calcValue(gas) }),
     );
     // await traceTree?.beautyPrint();
 

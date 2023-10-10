@@ -30,7 +30,6 @@ contract MailAccount is Version, GasHandlers, IMailAccount {
     uint128 outMailsNum = 0;
 
     uint32 constant MAX_MAILS_PER_BOX = 1000;
-    uint128 constant CONTRACT_MIN_BALANCE = 0.1 ever;
 
     event InMail(address mail, bytes meta, address sender, uint16 metaVersion);
     event OutMail(address mail, bytes meta, uint16 metaVersion);
@@ -39,7 +38,7 @@ contract MailAccount is Version, GasHandlers, IMailAccount {
     constructor() public { revert(); }
 
     function _reserve() internal pure returns (uint128) {
-        return math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
+        return math.max(address(this).balance - msg.value, Gas.ACCOUNT_MIN_BALANCE);
     }
 
     modifier onlyRoot() {

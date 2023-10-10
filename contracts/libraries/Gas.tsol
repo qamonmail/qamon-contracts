@@ -1,19 +1,71 @@
 pragma ever-solidity ^0.62.0;
 
+import "../structures/IGasValueStructure.tsol";
+
 
 library Gas {
     uint128 constant ROOT_COMPENSATION = 0.001 ever;
     uint128 constant ACCOUNT_COMPENSATION = 0.001 ever;
 
+    uint128 constant ACCOUNT_MIN_BALANCE = 0.1 ever;
+    uint128 constant ROOT_MIN_BALANCE = 1 ever;
+    uint128 constant ROOT_FIXED_COMMISSION = 0.03 ever;
+
     uint128 constant MAIL_BOX_DEPLOY_VALUE = 0.04 ever;
     uint128 constant ACCOUNT_DEPLOY_VALUE = 0.12 ever;
     uint128 constant MAIL_DEPLOY_VALUE = 0.1 ever;
 
-    uint128 constant SEND_MAILS_VALUE = 0.06 ever;
-    uint128 constant SAVE_MAIL_ACCOUNT_VALUE = 0.3 ever;
+    uint128 constant SEND_MAILS_GAS = 65000;
+    uint128 constant SEND_MAILS_PER_OUT_MAIL_GAS = 17000;
+    uint128 constant ROOT_ON_BOUNCE_GAS = 50000;
+    uint128 constant SAVE_MAIL_ACCOUNT_GAS = 45000;
     uint128 constant SAVE_MAIL_MAILBOX_VALUE = 0.015 ever;
 
+    function getSaveMailAccountGas(bool _deployAccount) public returns(IGasValueStructure.GasValue) {
+        return IGasValueStructure.GasValue(
+        ACCOUNT_COMPENSATION +
+            MAIL_BOX_DEPLOY_VALUE +
+            SAVE_MAIL_MAILBOX_VALUE +
+            (_deployAccount ? ROOT_COMPENSATION + ACCOUNT_DEPLOY_VALUE : 0),
+
+            SAVE_MAIL_ACCOUNT_GAS +
+            (_deployAccount ? ROOT_ON_BOUNCE_GAS : 0)
+        );
+    }
+
+    function getSendMailsGas(uint128 _receiversNumber, bool _deployAccount) public returns(IGasValueStructure.GasValue) {
+        IGasValueStructure.GasValue saveMail = getSaveMailAccountGas(_deployAccount);
+        return IGasValueStructure.GasValue(
+            ROOT_COMPENSATION +
+            ROOT_FIXED_COMMISSION +
+            MAIL_DEPLOY_VALUE +
+            saveMail.fixedValue * (_receiversNumber + 1),
+
+            SEND_MAILS_GAS +
+            SEND_MAILS_PER_OUT_MAIL_GAS * _receiversNumber +
+            saveMail.dynamicGas * (_receiversNumber + 1)
+        );
+    }
+
     uint128 constant MAIL_ROOT_UPGRADE = 0.1 ever;
-    uint128 constant MAIL_ACCOUNT_UPGRADE = 0.025 ever;
-    uint128 constant HANDLE_ACCOUNT_UPGRADE = 0.04 ever;
+    uint128 constant MAIL_ACCOUNT_UPGRADE = 25000;
+    uint128 constant HANDLE_MAIL_ACCOUNTS_UPGRADE = 900000;
+
+    function getUpdateMailAccountGas() public returns(IGasValueStructure.GasValue) {
+        return IGasValueStructure.GasValue(
+            ACCOUNT_COMPENSATION,
+            MAIL_ACCOUNT_UPGRADE
+        );
+    }
+
+    function getUpdateMailAccountsGas(uint128 _accountsNumber) public returns(IGasValueStructure.GasValue) {
+        IGasValueStructure.GasValue updateAccount = getUpdateMailAccountGas();
+        return IGasValueStructure.GasValue(
+            ROOT_COMPENSATION * _accountsNumber / 50 +
+            updateAccount.fixedValue * _accountsNumber,
+
+            HANDLE_MAIL_ACCOUNTS_UPGRADE * _accountsNumber / 50 +
+            updateAccount.dynamicGas * _accountsNumber
+        );
+    }
 }
