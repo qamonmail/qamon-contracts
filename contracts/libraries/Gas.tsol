@@ -16,9 +16,9 @@ library Gas {
     uint128 constant MAIL_DEPLOY_VALUE = 0.1 ever;
 
     uint128 constant SEND_MAILS_GAS = 65000;
-    uint128 constant SEND_MAILS_PER_OUT_MAIL_GAS = 17000;
-    uint128 constant ROOT_ON_BOUNCE_GAS = 50000;
-    uint128 constant SAVE_MAIL_ACCOUNT_GAS = 45000;
+    uint128 constant SEND_MAILS_PER_OUT_MAIL_GAS = 20000;
+    uint128 constant ROOT_ON_BOUNCE_GAS = 80000;
+    uint128 constant SAVE_MAIL_ACCOUNT_GAS = 60000;
     uint128 constant SAVE_MAIL_MAILBOX_VALUE = 0.015 ever;
 
     function getSaveMailAccountGas(bool _deployAccount) public returns(IGasValueStructure.GasValue) {
@@ -49,7 +49,7 @@ library Gas {
 
     uint128 constant MAIL_ROOT_UPGRADE = 0.1 ever;
     uint128 constant MAIL_ACCOUNT_UPGRADE = 25000;
-    uint128 constant HANDLE_MAIL_ACCOUNTS_UPGRADE = 900000;
+    uint128 constant HANDLE_MAIL_ACCOUNTS_UPGRADE = 1500000;
 
     function getUpdateMailAccountGas() public returns(IGasValueStructure.GasValue) {
         return IGasValueStructure.GasValue(
