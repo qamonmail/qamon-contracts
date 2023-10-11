@@ -1,16 +1,22 @@
 pragma ever-solidity ^0.62.0;
 
+import "@broxus/ever-contracts/contracts/upgrade/abstract/Version.tsol";
 
 import "./interfaces/IMailAccount.tsol";
 import "./interfaces/IMailBox.tsol";
+
 import "./libraries/Errors.tsol";
-import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
+
+import "./structures/IVersions.tsol";
+import "./structures/IMailState.tsol";
 
 
-contract MailBox is IMailBox {
-    address static root;
-    uint128 static nonce;
-    IMailAccount.MailBoxType static boxType;
+contract MailBox is Version, IMailBox {
+    TvmCell public platformCode;
+
+    address root; // mail account address
+    uint128 nonce;
+    IMailState.MailBoxType boxType;
     uint128 mailsNum = 0;
 
     struct Mail {
@@ -22,23 +28,104 @@ contract MailBox is IMailBox {
 
     Mail[] public mails;
 
-    constructor() public {
+    modifier onlyRoot() {
         require (msg.sender == root, Errors.NOT_ROOT);
+        _;
     }
+
+    // Prevent direct deploy
+    constructor() public { revert(); }
 
     function getDetails() external view responsible returns (
         address _root,
         uint128 _nonce,
-        IMailAccount.MailBoxType _boxType,
+        IMailState.MailBoxType _boxType,
         uint128 _mailsNum
     ) {
         return { value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false }(root, nonce, boxType, mailsNum);
     }
 
     function saveMail(address mail, bytes meta, address sender, uint16 metaVersion) external override {
-        require (msg.sender == root, Errors.NOT_ROOT);
+        require (msg.sender == root, Errors.NOT_MAIL_ACC);
 
         mails.push(Mail(mail, meta, sender, metaVersion));
         mailsNum++;
+    }
+
+    function upgrade(
+        TvmCell _code,
+        uint32 _newVersion,
+        address _remainingGasTo
+    )
+        external
+        onlyRoot
+    {
+        uint32 currentVersion = _getCurrentVersionInternal();
+
+        if (_newVersion > currentVersion) {
+            IVersions.Versions versions = IVersions.Versions({
+                current: _newVersion,
+                previous: currentVersion
+            });
+
+            TvmCell internalData = abi.encode(
+                platformCode,
+
+                root,
+                nonce,
+                boxType,
+                mailsNum
+            );
+
+            TvmBuilder data;
+            data.store(versions, _remainingGasTo);
+            data.store(internalData);
+
+            tvm.setcode(_code);
+            tvm.setCurrentCode(_code);
+
+            onCodeUpgrade(data.toCell());
+        }
+    }
+
+    function onCodeUpgrade(TvmCell _data) private {
+        tvm.resetStorage();
+
+        TvmSlice slice = _data.toSlice();
+
+        (IVersions.Versions versions, ) = slice.decode(IVersions.Versions, address);
+
+        if (versions.previous == 0) {
+            root = slice.decode(address);
+            platformCode = slice.loadRef();
+
+            _upgradeFromPlatform(slice);
+        } else {
+            _upgradeFromVersion(_data);
+        }
+
+        _setCurrentVersionInternal(versions.current, versions.previous);
+    }
+
+    function _upgradeFromPlatform(TvmSlice _params) private {
+        (nonce, boxType) = _params.loadRefAsSlice().decode(uint128, IMailState.MailBoxType);
+    }
+
+    function _upgradeFromVersion(TvmCell _data) private {
+        (
+            platformCode,
+
+            root,
+            nonce,
+            boxType,
+            mailsNum
+        ) = abi.decode(_data, (
+            TvmCell,
+
+            address,
+            uint128,
+            IMailState.MailBoxType,
+            uint128
+        ));
     }
 }

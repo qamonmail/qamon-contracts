@@ -1,34 +1,41 @@
 pragma ever-solidity ^0.62.0;
 
-
 import "./MailBox.tsol";
+import "./Platform.tsol";
+import "./abstract/GasHandlers.tsol";
+import "@broxus/ever-contracts/contracts/upgrade/abstract/Version.tsol";
+
 import "./interfaces/IMailAccount.tsol";
 import "./interfaces/IMailBox.tsol";
 import "./interfaces/IMailRoot.tsol";
-import "./libraries/Gas.tsol";
+
 import "./libraries/Errors.tsol";
-import "@broxus/contracts/contracts/libraries/MsgFlag.tsol";
+import "./libraries/Gas.tsol";
+
+import "./structures/IMailState.tsol";
+import "./structures/IVersionedCode.tsol";
+import "./structures/IVersions.tsol";
 
 
-contract MailAccount is IMailAccount {
-    address static root;
-    address static user;
-    uint static pubkey;
-    TvmCell public static mailBoxCode;
+contract MailAccount is Version, GasHandlers, IMailAccount {
+    TvmCell platformCode;
+
+    address root;
+    address user;
+    uint pubkey;
+
+    IVersionedCode.VersionedCode mailBoxCode;
 
     uint128 inMailsNum = 0;
     uint128 outMailsNum = 0;
 
     uint32 constant MAX_MAILS_PER_BOX = 1000;
-    uint128 constant CONTRACT_MIN_BALANCE = 0.1 ever;
 
-    event InMail(address mail, bytes meta, address sender, uint16 metaVersion);
-    event OutMail(address mail, bytes meta, uint16 metaVersion);
-
-    constructor (address send_gas_to) public onlyRoot {}
+    // Prevent direct deploy
+    constructor() public { revert(); }
 
     function _reserve() internal pure returns (uint128) {
-        return math.max(address(this).balance - msg.value, CONTRACT_MIN_BALANCE);
+        return math.max(address(this).balance - msg.value, Gas.ACCOUNT_MIN_BALANCE);
     }
 
     modifier onlyRoot() {
@@ -46,66 +53,183 @@ contract MailAccount is IMailAccount {
         return { value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false }(root, user, pubkey, inMailsNum, outMailsNum);
     }
 
-    function saveInMailAddress(uint32 nonce, address mail, bytes meta, address sender, uint16 metaVersion) external override onlyRoot {
-        tvm.rawReserve(_reserve(), 0);
-
-        address box = getOrCreateMailBox(inMailsNum, MailBoxType.Inbox);
+    function saveInMailAddress(
+        address mail,
+        bytes meta,
+        address sender,
+        uint16 metaVersion,
+        IMailState.MailUser /* user */,
+        address remainingGasTo
+    )
+        external
+        override
+        onlyRoot
+        reserveAndRefund_(_reserve(), remainingGasTo)
+    {
+        address box = getOrCreateMailBox(inMailsNum, IMailState.MailBoxType.Inbox);
         inMailsNum++;
 
-        emit InMail(mail, meta, sender, metaVersion);
-        IMailBox(box).saveMail{value: 0.015 ever, flag: MsgFlag.SENDER_PAYS_FEES}(mail, meta, sender, metaVersion);
-        IMailRoot(root).onMailSaved{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(nonce);
+        IMailBox(box).saveMail{
+            value: Gas.SAVE_MAIL_MAILBOX_VALUE,
+            flag: MsgFlag.SENDER_PAYS_FEES
+        }(mail, meta, sender, metaVersion);
     }
 
-    function saveOutMailAddress(uint32 nonce, address mail, bytes meta, uint16 metaVersion) external override onlyRoot {
-        tvm.rawReserve(_reserve(), 0);
-
-        address box = getOrCreateMailBox(outMailsNum, MailBoxType.Outbox);
+    function saveOutMailAddress(
+        address mail,
+        bytes meta,
+        uint16 metaVersion,
+        IMailState.MailUser /* user */,
+        address remainingGasTo
+    )
+        external
+        override
+        onlyRoot
+        reserveAndRefund_(_reserve(), remainingGasTo)
+    {
+        address box = getOrCreateMailBox(outMailsNum, IMailState.MailBoxType.Outbox);
         outMailsNum++;
 
-        emit OutMail(mail, meta, metaVersion);
-        IMailBox(box).saveMail{value: 0.015 ever, flag: MsgFlag.SENDER_PAYS_FEES}(mail, meta, user, metaVersion);
-        IMailRoot(root).onMailSaved{value: 0, flag: MsgFlag.ALL_NOT_RESERVED}(nonce);
+        IMailBox(box).saveMail{
+            value: Gas.SAVE_MAIL_MAILBOX_VALUE,
+            flag: MsgFlag.SENDER_PAYS_FEES
+        }(mail, meta, user, metaVersion);
     }
 
-    function getOrCreateMailBox(uint128 mail_num, MailBoxType _type) internal view returns (address) {
+    function getOrCreateMailBox(uint128 mail_num, IMailState.MailBoxType _type) internal view returns (address) {
         uint128 _nonce = mail_num / MAX_MAILS_PER_BOX;
         if (mail_num % MAX_MAILS_PER_BOX == 0) {
             // first mail in box
             return _deployMailBox(_nonce, _type);
         }
-        return getMailBoxAddress(_nonce, _type);
+        return _getMailBoxAddress(_nonce, _type);
     }
 
-    function calculateMailBoxAddress(uint128 mail_num, MailBoxType _type) public view responsible returns (address) {
+    function calculateMailBoxAddress(uint128 mail_num, IMailState.MailBoxType _type) public view responsible returns (address) {
         uint128 _nonce = mail_num / MAX_MAILS_PER_BOX;
-        return { value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false }getMailBoxAddress(_nonce, _type);
+        return { value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false } _getMailBoxAddress(_nonce, _type);
     }
 
-    function getMailBoxAddress(uint128 _nonce, MailBoxType _type) public view responsible returns (address) {
-        return { value: 0, flag: MsgFlag.REMAINING_GAS, bounce: false } address(
-            tvm.hash(_buildMailBoxInitData(_nonce, _type))
+    function _getMailBoxAddress(uint128 _nonce, IMailState.MailBoxType _type) private view returns (address) {
+        return PlatformUtils.expectedMailBox(address(this), platformCode, _nonce, _type);
+    }
+
+    function _deployMailBox(uint128 _nonce, IMailState.MailBoxType _type) internal view returns (address) {
+        TvmCell empty;
+
+        return new Platform{
+            stateInit: PlatformUtils.buildInitData(
+            address(this),
+            platformCode,
+            PlatformTypes.MailBox,
+            PlatformUtils.buildMailBoxParams(_nonce, _type)
+        ),
+            value: Gas.MAIL_BOX_DEPLOY_VALUE,
+            flag: MsgFlag.SENDER_PAYS_FEES
+        }(
+            mailBoxCode.code,
+            mailBoxCode.version,
+            address(0),
+            empty
         );
     }
 
-    function _buildMailBoxInitData(uint128 _nonce, MailBoxType _type) internal view returns (TvmCell) {
-        return tvm.buildStateInit({
-            contr: MailBox,
-            varInit: {
-                root: address(this),
-                nonce: _nonce,
-                boxType: _type
-            },
-            pubkey: 0,
-            code: mailBoxCode
+    function upgrade(
+        TvmCell _code,
+        uint32 _newVersion,
+        address _remainingGasTo
+    )
+        external
+        override
+        onlyRoot
+    {
+        tvm.rawReserve(_reserve(), 0);
+
+        uint32 currentVersion = _getCurrentVersionInternal();
+
+        if (_newVersion > currentVersion) {
+            IVersions.Versions versions = IVersions.Versions({
+                current: _newVersion,
+                previous: currentVersion
+            });
+
+            TvmCell internalData = abi.encode(
+                root,
+                user,
+                pubkey,
+
+                platformCode,
+                mailBoxCode,
+
+                inMailsNum,
+                outMailsNum
+            );
+
+            TvmBuilder data;
+            data.store(versions, _remainingGasTo);
+            data.store(internalData);
+
+            tvm.setcode(_code);
+            tvm.setCurrentCode(_code);
+
+            onCodeUpgrade(data.toCell());
+        }
+    }
+
+    function onCodeUpgrade(TvmCell _data) private {
+        tvm.resetStorage();
+
+        TvmSlice slice = _data.toSlice();
+
+        (IVersions.Versions versions, address remainingGasTo) = slice.decode(IVersions.Versions, address);
+
+        if (versions.previous == 0) {
+            tvm.rawReserve(_reserve(), 0);
+
+            root = slice.decode(address);
+            platformCode = slice.loadRef();
+
+            _upgradeFromPlatform(slice);
+        } else {
+            _upgradeFromVersion(slice.loadRef());
+        }
+
+        _setCurrentVersionInternal(versions.current, versions.previous);
+
+        remainingGasTo.transfer({
+            value: 0,
+            flag: MsgFlag.ALL_NOT_RESERVED + MsgFlag.IGNORE_ERRORS,
+            bounce: false
         });
     }
 
-    function _deployMailBox(uint128 _nonce, MailBoxType _type) internal view returns (address) {
-        return new MailBox{
-            stateInit: _buildMailBoxInitData(_nonce, _type),
-            value: Gas.MAIL_BOX_DEPLOY_VALUE,
-            flag: MsgFlag.SENDER_PAYS_FEES
-        }();
+    function _upgradeFromPlatform(TvmSlice _params) private {
+        (user, pubkey) = _params.loadRefAsSlice().decode(address, uint);
+
+        (mailBoxCode) = abi.decode(_params.loadRef(), IVersionedCode.VersionedCode);
+    }
+
+    function _upgradeFromVersion(TvmCell _data) private {
+        (
+            root,
+            user,
+            pubkey,
+
+            platformCode,
+            mailBoxCode,
+
+            inMailsNum,
+            outMailsNum
+        ) = abi.decode(_data, (
+            address,
+            address,
+            uint,
+
+            TvmCell,
+            IVersionedCode.VersionedCode,
+
+            uint128,
+            uint128
+        ));
     }
 }

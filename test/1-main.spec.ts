@@ -1,7 +1,7 @@
 import {expect} from "chai";
 import {Address, Contract, getRandomNonce, toNano, zeroAddress} from "locklift";
 import {MailAccountAbi, MailBoxAbi, MailRootAbi} from "../build/factorySource";
-import {deployUser, getEvent} from "./utils";
+import { calcValue, deployUser, getEvent } from "./utils";
 import {Account} from 'locklift/everscale-client';
 
 
@@ -30,20 +30,26 @@ describe("Test mail contracts", async function () {
             const MailBox = await locklift.factory.getContractArtifacts('MailBox');
             const MailAccount = await locklift.factory.getContractArtifacts('MailAccount');
             const Mail = await locklift.factory.getContractArtifacts('Mail');
+            const Platform = await locklift.factory.getContractArtifacts('Platform');
 
             const {contract: _root} = await locklift.tracing.trace(locklift.factory.deployContract({
-               contract: 'MailRoot',
-               initParams: {
-                   mailCode: Mail.code,
-                   mailBoxCode: MailBox.code,
-                   accountCode: MailAccount.code,
-                   _randomNonce: getRandomNonce()
-               },
-                constructorParams: {},
+                contract: 'MailRoot',
+                initParams: {
+                   _randomNonce: getRandomNonce(),
+                },
+                constructorParams: {
+                    owner_: user1.address,
+                    platformCode_: Platform.code,
+                    mailCode_: Mail.code,
+                    mailBoxCode_: MailBox.code,
+                    accountCode_: MailAccount.code,
+                },
                 value: toNano(2),
                 publicKey: signer?.publicKey as string
             }));
             mail_root = _root;
+
+            // console.log(_root.address);
         });
     });
 
@@ -56,6 +62,8 @@ describe("Test mail contracts", async function () {
             const acc1_addr = await mail_root.methods.getMailAccountAddress({answerId: 0, user: {addr: user1.address, pubkey: 0}}).call();
             const acc2_addr = await mail_root.methods.getMailAccountAddress({answerId: 0, user: {addr: user2.address, pubkey: 0}}).call();
 
+            let gas = await mail_root.methods.getSendMailsGas({answerId: 0, _receiversNumber: 1, _deployAccount: true}).call().then(a => a.value0);
+
             const {traceTree} = await locklift.tracing.trace(
                 mail_root.methods.sendMails({
                     receivers: [{addr: user2.address, pubkey: 0}],
@@ -63,8 +71,9 @@ describe("Test mail contracts", async function () {
                     metaVersion: 1,
                     senderMeta: '0x01',
                     receiverMeta: ['0x02'],
+                    deployAccount: true,
                     send_gas_to: user1.address
-                }).send({from: user1.address, amount: toNano(1.5)}),
+                }).send({from: user1.address, amount: calcValue(gas)}),
                 {allowedCodes: {contracts: {[acc1_addr.value0.toString()]: {compute: [null]}, [acc2_addr.value0.toString()]: {compute: [null]}}}}
             );
             // await traceTree?.beautyPrint();
@@ -114,14 +123,18 @@ describe("Test mail contracts", async function () {
             const mail_details = await mail.methods.getDetails({answerId: 0}).call();
             expect(mail_details._sender.toString()).to.be.eq(user1.address.toString());
 
-            await locklift.tracing.trace(mail_root.methods.sendMails({
+            const {traceTree: traceTree1} = await locklift.tracing.trace(mail_root.methods.sendMails({
                 receivers: [{addr: user2.address, pubkey: 0}],
                 encryptedMail: '02',
                 metaVersion: 2,
                 senderMeta: '0x02',
                 receiverMeta: ['0x03'],
+                deployAccount: false,
                 send_gas_to: user1.address
-            }).send({from: user1.address, amount: toNano(1.5)}));
+            }).send({from: user1.address, amount: calcValue(gas)}));
+            // await traceTree1?.beautyPrint();
+
+            // console.log(traceTree1?.getBalanceDiff(user1.address));
 
             const acc1_details_1 = await acc1.methods.getDetails({answerId: 0}).call();
             expect(acc1_details_1._outMailsNum).to.be.eq('2');
@@ -155,15 +168,18 @@ describe("Test mail contracts", async function () {
         });
 
         it('Send 2 mail from address2 to address1', async function() {
+            let gas = await mail_root.methods.getSendMailsGas({answerId: 0, _receiversNumber: 1, _deployAccount: false}).call().then(a => a.value0);
+
             const {traceTree} = await locklift.tracing.trace(
-              mail_root.methods.sendMails({
-                  receivers: [{addr: user1.address, pubkey: 0}],
-                  encryptedMail: '01',
-                  metaVersion: 1,
-                  senderMeta: '0x04',
-                  receiverMeta: ['0x05'],
-                  send_gas_to: user2.address
-              }).send({from: user2.address, amount: toNano(1.5)})
+                mail_root.methods.sendMails({
+                    receivers: [{addr: user1.address, pubkey: 0}],
+                    encryptedMail: '01',
+                    metaVersion: 1,
+                    senderMeta: '0x04',
+                    receiverMeta: ['0x05'],
+                    deployAccount: false,
+                    send_gas_to: user2.address
+                }).send({from: user2.address, amount: calcValue(gas)})
             );
             // await traceTree?.beautyPrint();
 
@@ -203,8 +219,9 @@ describe("Test mail contracts", async function () {
                 metaVersion: 2,
                 senderMeta: '0x06',
                 receiverMeta: ['0x07'],
+                deployAccount: false,
                 send_gas_to: user2.address
-            }).send({from: user2.address, amount: toNano(1.5)}));
+            }).send({from: user2.address, amount: calcValue(gas)}));
 
             const acc1_details_1 = await acc1.methods.getDetails({answerId: 0}).call();
             expect(acc1_details_1._inMailsNum).to.be.eq('2');
@@ -241,6 +258,7 @@ describe("Test mail contracts", async function () {
             const acc1_addr = await mail_root.methods.getMailAccountAddress({answerId: 0, user: {pubkey: 0, addr: user1.address}}).call();
             const acc3_addr = await mail_root.methods.getMailAccountAddress({answerId: 0, user: {pubkey: pubkey1, addr: zeroAddress}}).call();
 
+            let gas = await mail_root.methods.getSendMailsGas({answerId: 0, _receiversNumber: 1, _deployAccount: true}).call().then(a => a.value0);
             const {traceTree} = await locklift.tracing.trace(
                 mail_root.methods.sendMails({
                     receivers: [{addr: zeroAddress, pubkey: pubkey1}],
@@ -248,8 +266,9 @@ describe("Test mail contracts", async function () {
                     metaVersion: 3,
                     senderMeta: '0x08',
                     receiverMeta: ['0x09'],
+                    deployAccount: true,
                     send_gas_to: user1.address
-            }).send({from: user1.address, amount: toNano(1.5)}),
+            }).send({from: user1.address, amount: calcValue(gas)}),
             {allowedCodes: {contracts: {[acc1_addr.value0.toString()]: {compute: [null]}, [acc3_addr.value0.toString()]: {compute: [null]}}}}
             );
             // await traceTree?.beautyPrint();
@@ -292,8 +311,9 @@ describe("Test mail contracts", async function () {
                     metaVersion: 3,
                     senderMeta: '0x10',
                     receiverMeta: ['0x11'],
+                    deployAccount: false,
                     send_gas_to: user1.address
-                }).send({from: user1.address, amount: toNano(1.5)})
+                }).send({from: user1.address, amount: calcValue(gas)})
             );
 
             const user1_mails_1 = await user1_out_box.methods.mails().call();

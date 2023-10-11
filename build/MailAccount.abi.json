@@ -6,7 +6,6 @@
 		{
 			"name": "constructor",
 			"inputs": [
-				{"name":"send_gas_to","type":"address"}
 			],
 			"outputs": [
 			]
@@ -27,11 +26,12 @@
 		{
 			"name": "saveInMailAddress",
 			"inputs": [
-				{"name":"nonce","type":"uint32"},
 				{"name":"mail","type":"address"},
 				{"name":"meta","type":"bytes"},
 				{"name":"sender","type":"address"},
-				{"name":"metaVersion","type":"uint16"}
+				{"name":"metaVersion","type":"uint16"},
+				{"components":[{"name":"addr","type":"address"},{"name":"pubkey","type":"uint256"}],"name":"value4","type":"tuple"},
+				{"name":"remainingGasTo","type":"address"}
 			],
 			"outputs": [
 			]
@@ -39,10 +39,11 @@
 		{
 			"name": "saveOutMailAddress",
 			"inputs": [
-				{"name":"nonce","type":"uint32"},
 				{"name":"mail","type":"address"},
 				{"name":"meta","type":"bytes"},
-				{"name":"metaVersion","type":"uint16"}
+				{"name":"metaVersion","type":"uint16"},
+				{"components":[{"name":"addr","type":"address"},{"name":"pubkey","type":"uint256"}],"name":"value3","type":"tuple"},
+				{"name":"remainingGasTo","type":"address"}
 			],
 			"outputs": [
 			]
@@ -59,49 +60,33 @@
 			]
 		},
 		{
-			"name": "getMailBoxAddress",
+			"name": "upgrade",
 			"inputs": [
-				{"name":"answerId","type":"uint32"},
-				{"name":"_nonce","type":"uint128"},
-				{"name":"_type","type":"uint8"}
+				{"name":"_code","type":"cell"},
+				{"name":"_newVersion","type":"uint32"},
+				{"name":"_remainingGasTo","type":"address"}
 			],
 			"outputs": [
-				{"name":"value0","type":"address"}
 			]
 		},
 		{
-			"name": "mailBoxCode",
+			"name": "getVersion",
 			"inputs": [
+				{"name":"answerId","type":"uint32"}
 			],
 			"outputs": [
-				{"name":"mailBoxCode","type":"cell"}
+				{"name":"value0","type":"uint32"}
 			]
 		}
 	],
 	"data": [
-		{"key":1,"name":"root","type":"address"},
-		{"key":2,"name":"user","type":"address"},
-		{"key":3,"name":"pubkey","type":"uint256"},
-		{"key":4,"name":"mailBoxCode","type":"cell"}
 	],
 	"events": [
 		{
-			"name": "InMail",
+			"name": "VersionChanged",
 			"inputs": [
-				{"name":"mail","type":"address"},
-				{"name":"meta","type":"bytes"},
-				{"name":"sender","type":"address"},
-				{"name":"metaVersion","type":"uint16"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "OutMail",
-			"inputs": [
-				{"name":"mail","type":"address"},
-				{"name":"meta","type":"bytes"},
-				{"name":"metaVersion","type":"uint16"}
+				{"name":"current","type":"uint32"},
+				{"name":"previous","type":"uint32"}
 			],
 			"outputs": [
 			]
@@ -111,10 +96,12 @@
 		{"name":"_pubkey","type":"uint256"},
 		{"name":"_timestamp","type":"uint64"},
 		{"name":"_constructorFlag","type":"bool"},
+		{"name":"_currentVersion","type":"uint32"},
+		{"name":"platformCode","type":"cell"},
 		{"name":"root","type":"address"},
 		{"name":"user","type":"address"},
 		{"name":"pubkey","type":"uint256"},
-		{"name":"mailBoxCode","type":"cell"},
+		{"components":[{"name":"code","type":"cell"},{"name":"version","type":"uint32"},{"components":[{"name":"hash","type":"uint256"},{"name":"depth","type":"uint16"}],"name":"info","type":"tuple"}],"name":"mailBoxCode","type":"tuple"},
 		{"name":"inMailsNum","type":"uint128"},
 		{"name":"outMailsNum","type":"uint128"}
 	]

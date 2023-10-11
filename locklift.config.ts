@@ -1,6 +1,6 @@
-import { LockliftConfig } from "locklift";
+import { lockliftChai, LockliftConfig } from "locklift";
 import { FactorySource } from "./build/factorySource";
-import { SimpleGiver, GiverWallet, GiverWalletV2_3 } from "./giverSettings";
+import { SimpleGiver, GiverWalletV2_3 } from "./giverSettings";
 import * as dotenv from "dotenv";
 import "locklift-verifier";
 import "locklift-deploy";
@@ -17,6 +17,9 @@ declare module "locklift" {
   }
 }
 dotenv.config();
+
+import chai from "chai";
+chai.use(lockliftChai);
 
 const LOCAL_NETWORK_ENDPOINT = "http://localhost:5000/graphql";
 const VENOM_TESTNET_ENDPOINT = "https://jrpc-testnet.venom.foundation/rpc";

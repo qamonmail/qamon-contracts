@@ -1,9 +1,9 @@
 import {Contract, getRandomNonce, toNano, WalletTypes} from "locklift";
-import {Account} from 'locklift/everscale-standalone-client';
+import {Account} from 'locklift/everscale-client';
 import {MailAccountAbi, MailRootAbi} from "../build/factorySource";
+import { BigNumber } from "bignumber.js";
 
 const logger = require("mocha-logger");
-const {expect} = require("chai");
 
 
 
@@ -18,17 +18,32 @@ export const deployUser = async function (initial_balance = 100): Promise<Accoun
     const signer = await locklift.keystore.getSigner('0');
 
     const {account: _user, tx} = await locklift.factory.accounts.addNewAccount({
-        type: WalletTypes.MsigAccount,
-        contract: "Wallet",
+        type: WalletTypes.EverWallet,
         //Value which will send to the new account from a giver
         value: toNano(initial_balance),
         publicKey: signer?.publicKey as string,
-        initParams: {
-            _randomNonce: getRandomNonce()
-        },
-        constructorParams: {}
+        nonce: getRandomNonce()
     });
 
     logger.log(`User address: ${_user.address.toString()}`);
     return _user;
 }
+
+const gasPrice = 1000;
+
+export const calcValue = (
+  gas: (ReturnType<
+    ReturnType<
+      Contract<MailRootAbi>["methods"]["getSendMailsGas"]
+    >["call"]
+  > extends Promise<infer T>
+    ? T
+    : never)["value0"],
+  isTransfer = false,
+): string =>
+  new BigNumber(gas.dynamicGas)
+    .plus(isTransfer ? 100000 : 0)
+    .times(gasPrice)
+    .plus(gas.fixedValue)
+    .toString();
+

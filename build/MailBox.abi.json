@@ -34,6 +34,33 @@
 			]
 		},
 		{
+			"name": "upgrade",
+			"inputs": [
+				{"name":"_code","type":"cell"},
+				{"name":"_newVersion","type":"uint32"},
+				{"name":"_remainingGasTo","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getVersion",
+			"inputs": [
+				{"name":"answerId","type":"uint32"}
+			],
+			"outputs": [
+				{"name":"value0","type":"uint32"}
+			]
+		},
+		{
+			"name": "platformCode",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"platformCode","type":"cell"}
+			]
+		},
+		{
 			"name": "mails",
 			"inputs": [
 			],
@@ -43,16 +70,24 @@
 		}
 	],
 	"data": [
-		{"key":1,"name":"root","type":"address"},
-		{"key":2,"name":"nonce","type":"uint128"},
-		{"key":3,"name":"boxType","type":"uint8"}
 	],
 	"events": [
+		{
+			"name": "VersionChanged",
+			"inputs": [
+				{"name":"current","type":"uint32"},
+				{"name":"previous","type":"uint32"}
+			],
+			"outputs": [
+			]
+		}
 	],
 	"fields": [
 		{"name":"_pubkey","type":"uint256"},
 		{"name":"_timestamp","type":"uint64"},
 		{"name":"_constructorFlag","type":"bool"},
+		{"name":"_currentVersion","type":"uint32"},
+		{"name":"platformCode","type":"cell"},
 		{"name":"root","type":"address"},
 		{"name":"nonce","type":"uint128"},
 		{"name":"boxType","type":"uint8"},

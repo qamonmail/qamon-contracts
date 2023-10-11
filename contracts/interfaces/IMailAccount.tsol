@@ -1,12 +1,29 @@
 pragma ever-solidity ^0.62.0;
 
+import "../structures/IMailState.tsol";
+
 
 interface IMailAccount {
-    enum MailBoxType {
-        Inbox,
-        Outbox
-    }
+    function saveInMailAddress(
+        address mail,
+        bytes meta,
+        address sender,
+        uint16 metaVersion,
+        IMailState.MailUser,
+        address remainingGasTo
+    ) external;
 
-    function saveInMailAddress(uint32 nonce, address mail, bytes meta, address sender, uint16 metaVersion) external;
-    function saveOutMailAddress(uint32 nonce, address mail, bytes meta, uint16 metaVersion) external;
+    function saveOutMailAddress(
+        address mail,
+        bytes meta,
+        uint16 metaVersion,
+        IMailState.MailUser,
+        address remainingGasTo
+    ) external;
+
+    function upgrade(
+        TvmCell _code,
+        uint32 _newVersion,
+        address _remainingGasTo
+    ) external;
 }

@@ -6,9 +6,41 @@
 		{
 			"name": "constructor",
 			"inputs": [
-				{"name":"_owner","type":"address"}
+				{"name":"owner_","type":"address"},
+				{"name":"platformCode_","type":"cell"},
+				{"name":"accountCode_","type":"cell"},
+				{"name":"mailBoxCode_","type":"cell"},
+				{"name":"mailCode_","type":"cell"}
 			],
 			"outputs": [
+			]
+		},
+		{
+			"name": "getAccountCode",
+			"inputs": [
+				{"name":"answerId","type":"uint32"}
+			],
+			"outputs": [
+				{"components":[{"name":"code","type":"cell"},{"name":"version","type":"uint32"},{"components":[{"name":"hash","type":"uint256"},{"name":"depth","type":"uint16"}],"name":"info","type":"tuple"}],"name":"value0","type":"tuple"}
+			]
+		},
+		{
+			"name": "setAccountCode",
+			"inputs": [
+				{"name":"_code","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getSendMailsGas",
+			"inputs": [
+				{"name":"answerId","type":"uint32"},
+				{"name":"_receiversNumber","type":"uint128"},
+				{"name":"_deployAccount","type":"bool"}
+			],
+			"outputs": [
+				{"components":[{"name":"fixedValue","type":"uint128"},{"name":"dynamicGas","type":"uint128"}],"name":"value0","type":"tuple"}
 			]
 		},
 		{
@@ -19,15 +51,8 @@
 				{"name":"senderMeta","type":"bytes"},
 				{"name":"receiverMeta","type":"bytes[]"},
 				{"name":"metaVersion","type":"uint16"},
+				{"name":"deployAccount","type":"bool"},
 				{"name":"send_gas_to","type":"address"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "onMailSaved",
-			"inputs": [
-				{"name":"nonce","type":"uint32"}
 			],
 			"outputs": [
 			]
@@ -60,6 +85,72 @@
 			]
 		},
 		{
+			"name": "getUpgradeMailAccountsGas",
+			"inputs": [
+				{"name":"answerId","type":"uint32"},
+				{"name":"_accountsNumber","type":"uint128"}
+			],
+			"outputs": [
+				{"components":[{"name":"fixedValue","type":"uint128"},{"name":"dynamicGas","type":"uint128"}],"name":"value0","type":"tuple"}
+			]
+		},
+		{
+			"name": "upgradeMailAccounts",
+			"inputs": [
+				{"name":"_accounts","type":"address[]"},
+				{"name":"_offset","type":"uint32"},
+				{"name":"_remainingGasTo","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "upgrade",
+			"inputs": [
+				{"name":"_code","type":"cell"},
+				{"name":"_version","type":"optional(uint32)"},
+				{"name":"_remainingGasTo","type":"optional(address)"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getVersion",
+			"inputs": [
+				{"name":"answerId","type":"uint32"}
+			],
+			"outputs": [
+				{"name":"value0","type":"uint32"}
+			]
+		},
+		{
+			"name": "getOwner",
+			"inputs": [
+				{"name":"answerId","type":"uint32"}
+			],
+			"outputs": [
+				{"name":"value0","type":"address"}
+			]
+		},
+		{
+			"name": "setOwner",
+			"inputs": [
+				{"name":"_newOwner","type":"address"},
+				{"name":"_remainingGasTo","type":"optional(address)"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getTargetBalance",
+			"inputs": [
+				{"name":"answerId","type":"uint32"}
+			],
+			"outputs": [
+				{"name":"value0","type":"uint128"}
+			]
+		},
+		{
 			"name": "_randomNonce",
 			"inputs": [
 			],
@@ -68,39 +159,102 @@
 			]
 		},
 		{
-			"name": "mailCount",
+			"name": "_platformCode",
 			"inputs": [
 			],
 			"outputs": [
-				{"name":"mailCount","type":"uint32"}
+				{"name":"_platformCode","type":"cell"}
 			]
 		},
 		{
-			"name": "owner",
+			"name": "_mailCount",
 			"inputs": [
 			],
 			"outputs": [
-				{"name":"owner","type":"address"}
+				{"name":"_mailCount","type":"uint32"}
 			]
 		}
 	],
 	"data": [
-		{"key":1,"name":"_randomNonce","type":"uint256"},
-		{"key":2,"name":"accountCode","type":"cell"},
-		{"key":3,"name":"mailBoxCode","type":"cell"},
-		{"key":4,"name":"mailCode","type":"cell"}
+		{"key":1,"name":"_randomNonce","type":"uint256"}
 	],
 	"events": [
+		{
+			"name": "PlatformCodeUpdated",
+			"inputs": [
+				{"components":[{"name":"hash","type":"uint256"},{"name":"depth","type":"uint16"}],"name":"codeInfo","type":"tuple"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "AccountCodeUpdated",
+			"inputs": [
+				{"components":[{"name":"hash","type":"uint256"},{"name":"depth","type":"uint16"}],"name":"codeInfo","type":"tuple"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "MailBoxCodeUpdated",
+			"inputs": [
+				{"components":[{"name":"hash","type":"uint256"},{"name":"depth","type":"uint16"}],"name":"codeInfo","type":"tuple"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "MailCodeUpdated",
+			"inputs": [
+				{"components":[{"name":"hash","type":"uint256"},{"name":"depth","type":"uint16"}],"name":"codeInfo","type":"tuple"}
+			],
+			"outputs": [
+			]
+		},
 		{
 			"name": "MailCreated",
 			"inputs": [
 				{"components":[{"name":"addr","type":"address"},{"name":"pubkey","type":"uint256"}],"name":"receivers","type":"tuple[]"},
-				{"name":"encryptedMail","type":"bytes"},
 				{"name":"senderMeta","type":"bytes"},
 				{"name":"receiverMeta","type":"bytes[]"},
 				{"name":"metaVersion","type":"uint16"},
 				{"name":"sender","type":"address"},
 				{"name":"mail","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "UpgradeAccount",
+			"inputs": [
+				{"name":"account","type":"address"},
+				{"name":"accountVersion","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "AccountDeployCanceled",
+			"inputs": [
+				{"components":[{"name":"addr","type":"address"},{"name":"pubkey","type":"uint256"}],"name":"user","type":"tuple"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "VersionChanged",
+			"inputs": [
+				{"name":"current","type":"uint32"},
+				{"name":"previous","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "OwnerChanged",
+			"inputs": [
+				{"name":"current","type":"address"},
+				{"name":"previous","type":"address"}
 			],
 			"outputs": [
 			]
@@ -110,13 +264,13 @@
 		{"name":"_pubkey","type":"uint256"},
 		{"name":"_timestamp","type":"uint64"},
 		{"name":"_constructorFlag","type":"bool"},
+		{"name":"_owner","type":"address"},
+		{"name":"_currentVersion","type":"uint32"},
 		{"name":"_randomNonce","type":"uint256"},
-		{"name":"accountCode","type":"cell"},
-		{"name":"mailBoxCode","type":"cell"},
-		{"name":"mailCode","type":"cell"},
-		{"name":"mailCount","type":"uint32"},
-		{"name":"owner","type":"address"},
-		{"name":"_mail_nonce","type":"uint32"},
-		{"components":[{"components":[{"name":"addr","type":"address"},{"name":"pubkey","type":"uint256"}],"name":"user","type":"tuple"},{"name":"mail","type":"address"},{"name":"meta","type":"bytes"},{"name":"sender","type":"address"},{"name":"metaVersion","type":"uint16"},{"name":"send_gas_to","type":"address"}],"name":"_pending_mails","type":"map(uint32,tuple)"}
+		{"name":"_platformCode","type":"cell"},
+		{"components":[{"name":"code","type":"cell"},{"name":"version","type":"uint32"},{"components":[{"name":"hash","type":"uint256"},{"name":"depth","type":"uint16"}],"name":"info","type":"tuple"}],"name":"_accountCode","type":"tuple"},
+		{"components":[{"name":"code","type":"cell"},{"name":"version","type":"uint32"},{"components":[{"name":"hash","type":"uint256"},{"name":"depth","type":"uint16"}],"name":"info","type":"tuple"}],"name":"_mailBoxCode","type":"tuple"},
+		{"components":[{"name":"code","type":"cell"},{"name":"version","type":"uint32"},{"components":[{"name":"hash","type":"uint256"},{"name":"depth","type":"uint16"}],"name":"info","type":"tuple"}],"name":"_mailCode","type":"tuple"},
+		{"name":"_mailCount","type":"uint32"}
 	]
 }
