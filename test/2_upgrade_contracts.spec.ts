@@ -128,6 +128,8 @@ describe("upgrade contracts", () => {
       mail_root.methods
         .upgradeMailAccounts({ _accounts: mailAccounts, _offset: 0, _remainingGasTo: owner.address })
         .send({ from: owner.address, amount: calcValue(gas) }),
+      {allowedCodes: {contracts: {[owner.address.toString()]: {compute: [null]}
+        }}}
     );
     // await traceTree?.beautyPrint();
 

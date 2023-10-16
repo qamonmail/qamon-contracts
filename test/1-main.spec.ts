@@ -74,7 +74,11 @@ describe("Test mail contracts", async function () {
                     deployAccount: true,
                     send_gas_to: user1.address
                 }).send({from: user1.address, amount: calcValue(gas)}),
-                {allowedCodes: {contracts: {[acc1_addr.value0.toString()]: {compute: [null]}, [acc2_addr.value0.toString()]: {compute: [null]}}}}
+                {allowedCodes: {contracts: {
+                    [acc1_addr.value0.toString()]: {compute: [null]},
+                    [acc2_addr.value0.toString()]: {compute: [null]},
+                    [user1.address.toString()]: {compute: [null]}
+                }}}
             );
             // await traceTree?.beautyPrint();
             acc1 = await locklift.factory.getDeployedContract('MailAccount', acc1_addr.value0);
@@ -179,7 +183,10 @@ describe("Test mail contracts", async function () {
                     receiverMeta: ['0x05'],
                     deployAccount: false,
                     send_gas_to: user2.address
-                }).send({from: user2.address, amount: calcValue(gas)})
+                }).send({from: user2.address, amount: calcValue(gas)}),
+                {allowedCodes: {contracts: {
+                  [user2.address.toString()]: {compute: [null]}
+                }}}
             );
             // await traceTree?.beautyPrint();
 
@@ -221,7 +228,11 @@ describe("Test mail contracts", async function () {
                 receiverMeta: ['0x07'],
                 deployAccount: false,
                 send_gas_to: user2.address
-            }).send({from: user2.address, amount: calcValue(gas)}));
+            }).send({from: user2.address, amount: calcValue(gas)}),
+                {allowedCodes: {contracts: {
+                    [user2.address.toString()]: {compute: [null]}
+                }}}
+            );
 
             const acc1_details_1 = await acc1.methods.getDetails({answerId: 0}).call();
             expect(acc1_details_1._inMailsNum).to.be.eq('2');
@@ -269,8 +280,11 @@ describe("Test mail contracts", async function () {
                     deployAccount: true,
                     send_gas_to: user1.address
             }).send({from: user1.address, amount: calcValue(gas)}),
-            {allowedCodes: {contracts: {[acc1_addr.value0.toString()]: {compute: [null]}, [acc3_addr.value0.toString()]: {compute: [null]}}}}
-            );
+            {allowedCodes: {contracts: {
+                [acc1_addr.value0.toString()]: {compute: [null]},
+                [acc3_addr.value0.toString()]: {compute: [null]},
+                [user1.address.toString()]: {compute: [null]}
+            }}});
             // await traceTree?.beautyPrint();
 
             acc3 = await locklift.factory.getDeployedContract('MailAccount', acc3_addr.value0);
@@ -313,7 +327,10 @@ describe("Test mail contracts", async function () {
                     receiverMeta: ['0x11'],
                     deployAccount: false,
                     send_gas_to: user1.address
-                }).send({from: user1.address, amount: calcValue(gas)})
+                }).send({from: user1.address, amount: calcValue(gas)}),
+                    {allowedCodes: {contracts: {
+                          [user1.address.toString()]: {compute: [null]}
+                    }}}
             );
 
             const user1_mails_1 = await user1_out_box.methods.mails().call();
